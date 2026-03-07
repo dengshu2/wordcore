@@ -1,0 +1,122 @@
+[
+  {
+    "word": "the",
+    "pos": "adjective",
+    "definition": "Indicates a specific or previously mentioned noun.",
+    "example": "Please close the door."
+  },
+  {
+    "word": "of",
+    "pos": "preposition",
+    "definition": "Expressing relation, possession, or origin between things.",
+    "example": "A cup of tea, please."
+  },
+  {
+    "word": "and",
+    "pos": "conjunction",
+    "definition": "Used to connect words, phrases, or clauses.",
+    "example": "I like coffee and tea."
+  },
+  {
+    "word": "to",
+    "pos": "preposition",
+    "definition": "Expressing motion or direction toward a place.",
+    "example": "I am going to the store."
+  },
+  {
+    "word": "a",
+    "pos": "adjective",
+    "definition": "Refers to one unspecified item or person.",
+    "example": "I want a cookie."
+  },
+  {
+    "word": "in",
+    "pos": "preposition",
+    "definition": "Expressing location or inclusion within something.",
+    "example": "The book is in my bag."
+  },
+  {
+    "word": "for",
+    "pos": "preposition",
+    "definition": "Indicating purpose, recipient, or duration.",
+    "example": "This gift is for you."
+  },
+  {
+    "word": "is",
+    "pos": "verb",
+    "definition": "Third person singular present tense of the verb 'to be'.",
+    "example": "The sky is blue today."
+  },
+  {
+    "word": "on",
+    "pos": "preposition",
+    "definition": "In contact with a surface or supported by it.",
+    "example": "The book is on the table."
+  },
+  {
+    "word": "that",
+    "pos": "pronoun",
+    "definition": "Used to refer to a specific thing or idea.",
+    "example": "What is that?"
+  },
+  {
+    "word": "by",
+    "pos": "preposition",
+    "definition": "Near or next to a place or object.",
+    "example": "The book is by the lamp."
+  },
+  {
+    "word": "this",
+    "pos": "pronoun",
+    "definition": "Refers to a person or thing nearby or just mentioned.",
+    "example": "This is my book."
+  },
+  {
+    "word": "with",
+    "pos": "preposition",
+    "definition": "Denoting accompaniment, connection, or means.",
+    "example": "I went to the store with my friend."
+  },
+  {
+    "word": "i",
+    "pos": "pronoun",
+    "definition": "The first-person singular subject pronoun, referring to oneself.",
+    "example": "I am going to the store."
+  },
+  {
+    "word": "you",
+    "pos": "pronoun",
+    "definition": "Second-person pronoun, referring to the person or people addressed.",
+    "example": "Can I help you?"
+  },
+  {
+    "word": "it",
+    "pos": "pronoun",
+    "definition": "Refers to a non-human thing, animal, or idea.",
+    "example": "It is a beautiful day."
+  },
+  {
+    "word": "not",
+    "pos": "adverb",
+    "definition": "Expressing negation, denial, or absence.",
+    "example": "I am not going to school today."
+  },
+  {
+    "word": "or",
+    "pos": "conjunction",
+    "definition": "Used to connect alternatives, indicating a choice or possibility.",
+    "example": "Do you want coffee or tea?"
+  },
+  {
+    "word": "be",
+    "pos": "verb",
+    "definition": "To exist or occur; to have a certain quality.",
+    "example": "I want to be happy."
+  },
+  {
+    "word": "are",
+    "pos": "verb",
+    "definition": "Plural present form of be, indicating existence or state.",
+    "example": "They are happy to be here."
+  }
+]
