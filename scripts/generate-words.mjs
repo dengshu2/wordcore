@@ -1,11 +1,13 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const API_KEY = 'REDACTED_API_KEY'
 const genAI = new GoogleGenerativeAI(API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
-const SAMPLE_COUNT = 20  // Change to 3000 for full run
+const SAMPLE_COUNT = 3000
+const CONCURRENCY = 15
+const OUT_PATH = SAMPLE_COUNT <= 20 ? 'scripts/sample-words.json' : 'src/data/words.json'
 
 function loadWords(count) {
   const text = readFileSync('scripts/wordlist.txt', 'utf-8')
@@ -27,27 +29,45 @@ Respond ONLY with valid JSON, no extra text:
   return JSON.parse(json)
 }
 
-async function main() {
-  const words = loadWords(SAMPLE_COUNT)
-  const results = []
+async function processWord(word, index, total) {
+  try {
+    const data = await generateWordData(word)
+    process.stdout.write(`\r[${index + 1}/${total}] ${word.padEnd(20)} OK`)
+    return { word, ...data }
+  } catch (e) {
+    process.stdout.write(`\r[${index + 1}/${total}] ${word.padEnd(20)} ERROR: ${e.message.slice(0, 40)}`)
+    return { word, pos: '', definition: '', example: '' }
+  }
+}
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i]
-    process.stdout.write(`[${i + 1}/${words.length}] ${word}... `)
-    try {
-      const data = await generateWordData(word)
-      results.push({ word, ...data })
-      console.log('OK')
-    } catch (e) {
-      console.log(`ERROR: ${e.message}`)
-      results.push({ word, pos: '', definition: '', example: '' })
+async function runWithConcurrency(tasks, concurrency) {
+  const results = new Array(tasks.length)
+  let index = 0
+
+  async function worker() {
+    while (index < tasks.length) {
+      const i = index++
+      results[i] = await tasks[i]()
     }
-    await new Promise(r => setTimeout(r, 300))
   }
 
-  const outPath = SAMPLE_COUNT <= 20 ? 'scripts/sample-words.json' : 'src/data/words.json'
-  writeFileSync(outPath, JSON.stringify(results, null, 2))
-  console.log(`\nDone. Saved ${results.length} words to ${outPath}`)
+  await Promise.all(Array.from({ length: concurrency }, worker))
+  return results
+}
+
+async function main() {
+  const words = loadWords(SAMPLE_COUNT)
+  console.log(`Generating ${words.length} words with concurrency=${CONCURRENCY}...`)
+
+  const tasks = words.map((word, i) => () => processWord(word, i, words.length))
+  const results = await runWithConcurrency(tasks, CONCURRENCY)
+
+  console.log(`\nDone. Writing ${results.length} words to ${OUT_PATH}`)
+  writeFileSync(OUT_PATH, JSON.stringify(results, null, 2))
+  console.log('Saved.')
+
+  const errors = results.filter(r => !r.pos || !r.definition || !r.example).length
+  if (errors > 0) console.log(`Warning: ${errors} entries with empty fields.`)
 }
 
 main()
