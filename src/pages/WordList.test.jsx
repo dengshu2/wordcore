@@ -3,6 +3,21 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi } from 'vitest'
 import WordList from './WordList'
 
+// useVirtualizer requires a real scroll container with dimensions.
+// In jsdom there are none, so mock it to render all items directly.
+vi.mock('@tanstack/react-virtual', () => ({
+  useVirtualizer: ({ count, getScrollElement, estimateSize }) => ({
+    getTotalSize: () => count * estimateSize(),
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, index) => ({
+        index,
+        start: index * estimateSize(),
+        size: estimateSize(),
+        key: index,
+      })),
+  }),
+}))
+
 vi.mock('../data/words.json', () => ({
   default: [
     { word: 'apple', pos: 'noun', definition: 'a round fruit', example: 'I eat an apple every day.' },
@@ -35,3 +50,4 @@ describe('WordList', () => {
     expect(screen.queryByText('run')).not.toBeInTheDocument()
   })
 })
+

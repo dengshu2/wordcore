@@ -1,13 +1,16 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/words.json'
 import useProgress from '../hooks/useProgress'
 
 const FILTERS = ['All', 'Learning', 'Mastered']
+const ROW_HEIGHT = 68
 
 export default function WordList() {
   const { progress } = useProgress()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
+  const parentRef = useRef(null)
 
   const filtered = useMemo(() => {
     return words.filter(w => {
@@ -18,8 +21,16 @@ export default function WordList() {
     })
   }, [query, filter, progress])
 
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  })
+
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Sticky header */}
       <div className="px-6 pt-8 pb-4 bg-white border-b border-gray-100">
         <h1 className="text-2xl font-bold mb-4">Words</h1>
         <input
@@ -34,9 +45,8 @@ export default function WordList() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-              }`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium ${filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                }`}
             >
               {f}
             </button>
@@ -44,20 +54,45 @@ export default function WordList() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        {filtered.map(w => (
-          <div key={w.word} className="flex items-center px-6 py-3 border-b border-gray-100 bg-white">
-            <div className="flex-1">
-              <span className="font-medium">{w.word}</span>
-              <span className="text-gray-400 text-sm ml-2">{w.pos}</span>
-            </div>
-            {progress[w.word] === 'mastered' && (
-              <span className="text-green-500 text-sm">✓ Mastered</span>
-            )}
-          </div>
-        ))}
-        {filtered.length === 0 && (
+      {/* Virtualized list */}
+      <div
+        ref={parentRef}
+        className="flex-1 overflow-auto bg-white"
+      >
+        {filtered.length === 0 ? (
           <div className="text-center text-gray-400 py-16">No words found</div>
+        ) : (
+          <div
+            style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}
+          >
+            {virtualizer.getVirtualItems().map(virtualItem => {
+              const w = filtered[virtualItem.index]
+              return (
+                <div
+                  key={w.word}
+                  style={{
+                    position: 'absolute',
+                    top: `${virtualItem.start}px`,
+                    left: 0,
+                    right: 0,
+                    height: `${ROW_HEIGHT}px`,
+                  }}
+                  className="px-6 py-4 border-b border-gray-100"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium">{w.word}</span>
+                      <span className="text-gray-400 text-sm ml-2">{w.pos}</span>
+                    </div>
+                    {progress[w.word] === 'mastered' && (
+                      <span className="text-green-500 text-sm">✓ Mastered</span>
+                    )}
+                  </div>
+                  <div className="text-gray-400 text-sm mt-1 italic truncate">{w.example}</div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>

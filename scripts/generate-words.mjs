@@ -1,7 +1,23 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const API_KEY = 'REDACTED_API_KEY'
+// Load .env file manually (no dotenv dependency needed in Node 20+)
+try {
+  const envContent = readFileSync('.env', 'utf-8')
+  for (const line of envContent.split('\n')) {
+    const [key, ...valueParts] = line.split('=')
+    if (key && !key.startsWith('#') && valueParts.length > 0) {
+      process.env[key.trim()] = valueParts.join('=').trim()
+    }
+  }
+} catch { /* .env file is optional */ }
+
+const API_KEY = process.env.GEMINI_API_KEY
+if (!API_KEY || API_KEY === 'your_api_key_here') {
+  console.error('Error: Set GEMINI_API_KEY in your .env file (see .env.example)')
+  process.exit(1)
+}
+
 const genAI = new GoogleGenerativeAI(API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 

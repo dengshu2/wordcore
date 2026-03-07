@@ -2,29 +2,30 @@ import { useState } from 'react'
 import words from '../data/words.json'
 import useProgress from '../hooks/useProgress'
 
-function getNextWord(words, progress, exclude) {
-  const learning = words.filter(w => progress[w.word] !== 'mastered' && w.word !== exclude)
-  if (learning.length === 0) {
-    const all = words.filter(w => w.word !== exclude)
-    return all.length > 0
-      ? all[Math.floor(Math.random() * all.length)]
-      : words[Math.floor(Math.random() * words.length)]
-  }
-  return learning[Math.floor(Math.random() * learning.length)]
+function getNextWord(words, progress, excludeWord) {
+  const learning = words.filter(w => progress[w.word] !== 'mastered' && w.word !== excludeWord)
+  if (learning.length > 0) return learning[Math.floor(Math.random() * learning.length)]
+  // All mastered — pick any word except the current one
+  const rest = words.filter(w => w.word !== excludeWord)
+  return rest.length > 0 ? rest[Math.floor(Math.random() * rest.length)] : words[0]
 }
 
 export default function Study() {
   const { progress, setStatus } = useProgress()
-  const [current, setCurrent] = useState(() => {
-    const learning = words.filter(w => progress[w.word] !== 'mastered')
-    return learning.length > 0 ? learning[0] : words[0]
-  })
+  const [current, setCurrent] = useState(() => getNextWord(words, progress, null))
   const [sentence, setSentence] = useState('')
   const [revealed, setRevealed] = useState(false)
 
-  function handleNext(status) {
-    setStatus(current.word, status)
-    const next = getNextWord(words, { ...progress, [current.word]: status }, current.word)
+  function handleAgain() {
+    setStatus(current.word, 'learning')
+    setCurrent(getNextWord(words, progress, current.word))
+    setSentence('')
+    setRevealed(false)
+  }
+
+  function handleMastered() {
+    setStatus(current.word, 'mastered')
+    const next = getNextWord(words, { ...progress, [current.word]: 'mastered' }, current.word)
     setCurrent(next)
     setSentence('')
     setRevealed(false)
@@ -63,13 +64,13 @@ export default function Study() {
           <div className="text-base">{current.example}</div>
           <div className="flex gap-3 mt-2">
             <button
-              onClick={() => handleNext('learning')}
+              onClick={handleAgain}
               className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-semibold"
             >
               Again
             </button>
             <button
-              onClick={() => handleNext('mastered')}
+              onClick={handleMastered}
               className="flex-1 bg-green-500 text-white py-3 rounded-xl font-semibold"
             >
               Mastered
