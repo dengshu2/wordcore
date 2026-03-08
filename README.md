@@ -60,8 +60,6 @@ node scripts/generate-words.mjs
 
 - [产品需求文档](./docs/PRD.md)
 - [产品方向 & 重构计划](./docs/2026-03-08-wordcore-rebuild-plan.md)
-- [设计文档](./docs/plans/2026-03-07-wordcore-design.md)
-- [实施计划](./docs/plans/2026-03-07-wordcore-implementation.md)
 
 ## License
 
