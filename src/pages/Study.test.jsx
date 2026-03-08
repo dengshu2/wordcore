@@ -8,7 +8,7 @@ const MOCK_WORDS = [
   { word: 'able', pos: 'adjective', definition: 'having the skill to do something', example: 'He was able to fix the car himself.' },
 ]
 
-vi.mock('../data/words.json', () => ({
+vi.mock('../data/wordBank', () => ({
   default: [
     { word: 'abandon', pos: 'verb', definition: 'to leave something permanently', example: 'She had to abandon her car in the snow.' },
     { word: 'able', pos: 'adjective', definition: 'having the skill to do something', example: 'He was able to fix the car himself.' },
@@ -19,12 +19,6 @@ const mockSetStatus = vi.fn()
 vi.mock('../hooks/useProgress', () => ({
   default: () => ({ progress: {}, setStatus: mockSetStatus, masteredCount: 0 })
 }))
-
-// Helper: get whichever word is shown first (random)
-function getCurrentWord() {
-  const wordEls = MOCK_WORDS.map(w => document.querySelector(`div.text-4xl`)?.textContent?.trim())
-  return wordEls[0] || 'abandon'
-}
 
 describe('Study', () => {
   beforeEach(() => mockSetStatus.mockClear())
@@ -46,6 +40,7 @@ describe('Study', () => {
   it('reveals example after clicking Compare', () => {
     render(<MemoryRouter><Study /></MemoryRouter>)
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /compare/i }))
     expect(screen.getByText(shown.example)).toBeInTheDocument()
   })
@@ -53,6 +48,7 @@ describe('Study', () => {
   it('calls setStatus mastered when Mastered is clicked', () => {
     render(<MemoryRouter><Study /></MemoryRouter>)
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /compare/i }))
     fireEvent.click(screen.getByRole('button', { name: /mastered/i }))
     expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'mastered')
@@ -61,6 +57,7 @@ describe('Study', () => {
   it('calls setStatus learning when Again is clicked', () => {
     render(<MemoryRouter><Study /></MemoryRouter>)
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /compare/i }))
     fireEvent.click(screen.getByRole('button', { name: /again/i }))
     expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'learning')
@@ -70,8 +67,23 @@ describe('Study', () => {
     render(<MemoryRouter><Study /></MemoryRouter>)
     const first = MOCK_WORDS.find(w => screen.queryByText(w.word))
     const other = MOCK_WORDS.find(w => w.word !== first.word)
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: `The word ${first.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /compare/i }))
     fireEvent.click(screen.getByRole('button', { name: /again/i }))
     expect(screen.getByText(other.word)).toBeInTheDocument()
+  })
+
+  it('disables Compare until the user writes a sentence containing the target word', () => {
+    render(<MemoryRouter><Study /></MemoryRouter>)
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    const button = screen.getByRole('button', { name: /compare/i })
+    expect(button).toBeDisabled()
+
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: 'I can use this word.' } })
+    expect(screen.getByText(new RegExp(`include the word "${shown.word}"`, 'i'))).toBeInTheDocument()
+    expect(button).toBeDisabled()
+
+    fireEvent.change(screen.getByPlaceholderText(/type a sentence/i), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    expect(button).not.toBeDisabled()
   })
 })

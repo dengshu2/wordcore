@@ -1,34 +1,37 @@
 import { useState } from 'react'
-import words from '../data/words.json'
+import words from '../data/wordBank'
 import useProgress from '../hooks/useProgress'
-
-function getNextWord(words, progress, excludeWord) {
-  const learning = words.filter(w => progress[w.word] !== 'mastered' && w.word !== excludeWord)
-  if (learning.length > 0) return learning[Math.floor(Math.random() * learning.length)]
-  // All mastered — pick any word except the current one
-  const rest = words.filter(w => w.word !== excludeWord)
-  return rest.length > 0 ? rest[Math.floor(Math.random() * rest.length)] : words[0]
-}
+import { getNextWord, includesTargetWord } from './studySession'
 
 export default function Study() {
   const { progress, setStatus } = useProgress()
-  const [current, setCurrent] = useState(() => getNextWord(words, progress, null))
+  const [current, setCurrent] = useState(() => getNextWord(words, progress, [], null))
   const [sentence, setSentence] = useState('')
   const [revealed, setRevealed] = useState(false)
+  const [recentWords, setRecentWords] = useState(() => (current ? [current.word] : []))
 
-  function handleAgain() {
-    setStatus(current.word, 'learning')
-    setCurrent(getNextWord(words, progress, current.word))
+  const hasSentence = sentence.trim().length > 0
+  const hasTargetWord = current ? includesTargetWord(sentence, current.word) : false
+  const canCompare = hasSentence && hasTargetWord
+
+  function advance(nextProgress) {
+    const next = getNextWord(words, nextProgress, recentWords, current.word)
+    setCurrent(next)
+    setRecentWords(prev => (next ? [...prev, next.word] : prev))
     setSentence('')
     setRevealed(false)
   }
 
+  function handleAgain() {
+    const nextProgress = { ...progress, [current.word]: 'learning' }
+    setStatus(current.word, 'learning')
+    advance(nextProgress)
+  }
+
   function handleMastered() {
+    const nextProgress = { ...progress, [current.word]: 'mastered' }
     setStatus(current.word, 'mastered')
-    const next = getNextWord(words, { ...progress, [current.word]: 'mastered' }, current.word)
-    setCurrent(next)
-    setSentence('')
-    setRevealed(false)
+    advance(nextProgress)
   }
 
   return (
@@ -48,10 +51,16 @@ export default function Study() {
           placeholder="Type a sentence using this word..."
           disabled={revealed}
         />
+        {hasSentence && !hasTargetWord && (
+          <div className="text-sm text-amber-700">
+            Include the word "{current.word}" in your sentence before comparing.
+          </div>
+        )}
         {!revealed && (
           <button
             onClick={() => setRevealed(true)}
-            className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold"
+            disabled={!canCompare}
+            className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             Compare
           </button>

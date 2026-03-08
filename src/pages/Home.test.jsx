@@ -7,7 +7,7 @@ vi.mock('../hooks/useProgress', () => ({
   default: () => ({ masteredCount: 42, progress: {} })
 }))
 
-vi.mock('../data/words.json', () => ({
+vi.mock('../data/wordBank', () => ({
   default: Array(3000).fill({ word: 'test', pos: 'noun', definition: 'a test', example: 'This is a test.' })
 }))
 

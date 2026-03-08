@@ -18,7 +18,7 @@ vi.mock('@tanstack/react-virtual', () => ({
   }),
 }))
 
-vi.mock('../data/words.json', () => ({
+vi.mock('../data/wordBank', () => ({
   default: [
     { word: 'apple', pos: 'noun', definition: 'a round fruit', example: 'I eat an apple every day.' },
     { word: 'run', pos: 'verb', definition: 'to move fast', example: 'She runs every morning.' },
@@ -50,4 +50,3 @@ describe('WordList', () => {
     expect(screen.queryByText('run')).not.toBeInTheDocument()
   })
 })
-

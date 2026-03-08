@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import useProgress from '../hooks/useProgress'
-import words from '../data/words.json'
+import words from '../data/wordBank'
 
 const TOTAL = words.length
 

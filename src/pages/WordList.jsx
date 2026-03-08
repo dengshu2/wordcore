@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import words from '../data/words.json'
+import words from '../data/wordBank'
 import useProgress from '../hooks/useProgress'
 
 const FILTERS = ['All', 'Learning', 'Mastered']

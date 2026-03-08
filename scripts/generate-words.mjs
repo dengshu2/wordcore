@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { normalizeWordEntry } from '../src/data/normalizeWordEntry.js'
 
 // Load .env file manually (no dotenv dependency needed in Node 20+)
 try {
@@ -48,8 +49,12 @@ Respond ONLY with valid JSON, no extra text:
 async function processWord(word, index, total) {
   try {
     const data = await generateWordData(word)
+    const normalized = normalizeWordEntry({ word, ...data })
+    if (!normalized) {
+      throw new Error('Entry failed validation')
+    }
     process.stdout.write(`\r[${index + 1}/${total}] ${word.padEnd(20)} OK`)
-    return { word, ...data }
+    return normalized
   } catch (e) {
     process.stdout.write(`\r[${index + 1}/${total}] ${word.padEnd(20)} ERROR: ${e.message.slice(0, 40)}`)
     return { word, pos: '', definition: '', example: '' }
