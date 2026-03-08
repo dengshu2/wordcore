@@ -2,7 +2,7 @@
 
 英语核心词汇练习应用 — 通过写例句真正掌握前 3000 高频词汇。
 
-**核心学习闭环：** 看单词 → 自写例句 → 与参考例句对比 → 标注掌握 / 再练
+**核心学习闭环：** 看单词 → 自写例句 → AI 批改反馈 → 积累通过次数 → 标记掌握
 
 ## 技术栈
 
@@ -35,6 +35,10 @@ cp .env.example .env
 - `GEMINI_API_KEY`：离线生成词库脚本使用
 - `VITE_GEMINI_API_KEY`：前端运行时的句子校验使用
 
+> **安全提示**：`VITE_GEMINI_API_KEY` 会被打包进前端 JS，任何人打开 DevTools 都能看到。
+> 建议仅用于个人自部署场景，**不要使用有高额配额或付费绑定的 key**。
+> 免费的 [Google AI Studio](https://aistudio.google.com/app/apikey) key 即可满足个人使用需求。
+
 ## 词库数据说明
 
 `src/data/words.json` 包含 3000 个高频英语词汇，每个词条包含：
@@ -55,5 +59,10 @@ node scripts/generate-words.mjs
 ## 文档
 
 - [产品需求文档](./docs/PRD.md)
+- [产品方向 & 重构计划](./docs/2026-03-08-wordcore-rebuild-plan.md)
 - [设计文档](./docs/plans/2026-03-07-wordcore-design.md)
 - [实施计划](./docs/plans/2026-03-07-wordcore-implementation.md)
+
+## License
+
+MIT
