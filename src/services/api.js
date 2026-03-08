@@ -30,10 +30,13 @@ async function request(path, options = {}) {
         },
     })
 
-    // 401 means the token has expired or is invalid — force re-login.
+    // 401 means the token has expired or is invalid — notify AuthContext to clear the user.
+    // AuthContext listens for this event and sets user to null, which triggers the route guard
+    // redirect. This avoids a hard page reload so the user's draft state can be preserved
+    // and tests are not affected by navigation side-effects.
     if (res.status === 401) {
         clearToken()
-        window.location.href = '/login'
+        window.dispatchEvent(new CustomEvent('auth:session-expired'))
         throw new Error('Session expired. Please log in again.')
     }
 

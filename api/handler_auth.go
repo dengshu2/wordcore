@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 )
@@ -19,11 +20,12 @@ func (h *handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := h.auth.Register(req.Email, req.Password)
 	if err != nil {
-		// Distinguish user-facing errors from internal ones.
-		switch err.Error() {
-		case "email already registered",
-			"email is required",
-			"password must be at least 8 characters":
+		// Distinguish user-facing validation errors from internal failures.
+		switch {
+		case errors.Is(err, ErrEmailRequired),
+			errors.Is(err, ErrPasswordTooShort),
+			errors.Is(err, ErrPasswordTooLong),
+			errors.Is(err, ErrEmailTaken):
 			respondError(w, http.StatusUnprocessableEntity, err.Error())
 		default:
 			log.Printf("register error: %v", err)
@@ -51,10 +53,9 @@ func (h *handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := h.auth.Login(req.Email, req.Password)
 	if err != nil {
-		switch err.Error() {
-		case "invalid email or password":
+		if errors.Is(err, ErrInvalidCreds) {
 			respondError(w, http.StatusUnauthorized, err.Error())
-		default:
+		} else {
 			log.Printf("login error: %v", err)
 			respondError(w, http.StatusInternalServerError, "login failed")
 		}

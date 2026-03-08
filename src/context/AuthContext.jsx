@@ -20,6 +20,16 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
+    // Listen for 401 events dispatched by the API layer (api.js).
+    // Setting user to null triggers the route guard redirect, without a full page reload.
+    useEffect(() => {
+        function handleSessionExpired() {
+            setUser(null)
+        }
+        window.addEventListener('auth:session-expired', handleSessionExpired)
+        return () => window.removeEventListener('auth:session-expired', handleSessionExpired)
+    }, [])
+
     const login = useCallback(async (email, password) => {
         setLoading(true)
         setError('')
@@ -66,6 +76,7 @@ export function AuthProvider({ children }) {
     )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- intentional: Provider and hook are co-located for cohesion
 export function useAuth() {
     const ctx = useContext(AuthContext)
     if (!ctx) throw new Error('useAuth must be used within AuthProvider')

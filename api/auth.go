@@ -17,6 +17,15 @@ const (
 	contextKeyUser = contextKey("user")
 )
 
+// Sentinel errors for user-facing auth failures.
+var (
+	ErrEmailRequired    = errors.New("email is required")
+	ErrPasswordTooShort = errors.New("password must be at least 8 characters")
+	ErrPasswordTooLong  = errors.New("password is too long (maximum 128 characters)")
+	ErrEmailTaken       = errors.New("email already registered")
+	ErrInvalidCreds     = errors.New("invalid email or password")
+)
+
 type contextKey string
 
 // Claims is the JWT payload.
@@ -40,10 +49,13 @@ func NewAuthService(db *sql.DB, secret string) *AuthService {
 func (a *AuthService) Register(email, password string) (User, string, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" {
-		return User{}, "", errors.New("email is required")
+		return User{}, "", ErrEmailRequired
 	}
 	if len(password) < 8 {
-		return User{}, "", errors.New("password must be at least 8 characters")
+		return User{}, "", ErrPasswordTooShort
+	}
+	if len(password) > 128 {
+		return User{}, "", ErrPasswordTooLong
 	}
 
 	// Check for duplicate email.
@@ -52,7 +64,7 @@ func (a *AuthService) Register(email, password string) (User, string, error) {
 		return User{}, "", fmt.Errorf("check email: %w", err)
 	}
 	if existing.ID != "" {
-		return User{}, "", errors.New("email already registered")
+		return User{}, "", ErrEmailTaken
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
@@ -82,11 +94,11 @@ func (a *AuthService) Login(email, password string) (User, string, error) {
 		return User{}, "", fmt.Errorf("lookup user: %w", err)
 	}
 	if user.ID == "" {
-		return User{}, "", errors.New("invalid email or password")
+		return User{}, "", ErrInvalidCreds
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
-		return User{}, "", errors.New("invalid email or password")
+		return User{}, "", ErrInvalidCreds
 	}
 
 	token, err := a.signToken(user)

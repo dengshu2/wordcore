@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import words from '../data/wordBank'
-import useProgress from '../hooks/useProgress'
+import { useProgressContext } from '../context/ProgressContext'
 import { getNextWord, includesTargetWord } from './studySession'
 import { checkSentence } from '../services/sentenceCheck'
 
@@ -27,7 +27,7 @@ function getRequestedWord(words, requestedWord) {
 }
 
 export default function Study() {
-  const { records, setStatus, saveDraft, saveFeedback } = useProgress()
+  const { records, setStatus, saveDraft, saveFeedback } = useProgressContext()
   const [searchParams] = useSearchParams()
   const requestedWord = searchParams.get('word')
   const initialWord = getRequestedWord(words, requestedWord)
@@ -43,6 +43,10 @@ export default function Study() {
   const [sessionAcceptedSentences, setSessionAcceptedSentences] = useState(() => new Set())
 
   const currentRecord = current ? records[current.word] || {} : {}
+
+  useEffect(() => {
+    document.title = current ? `${current.word} — WordCore Study` : 'WordCore — Study'
+  }, [current])
   const hasSentence = sentence.trim().length > 0
   const hasTargetWord = current ? includesTargetWord(sentence, current.word) : false
   const canCompare = hasSentence && hasTargetWord
@@ -55,6 +59,9 @@ export default function Study() {
   // (3) at least one new sentence was accepted in this session.
   const masteredReady = Boolean(feedback?.is_acceptable) && acceptedAttempts >= REQUIRED_ACCEPTED_ATTEMPTS && hasSessionAccepted
   const remainingAcceptedChecks = Math.max(REQUIRED_ACCEPTED_ATTEMPTS - acceptedAttempts, 0)
+  // storedMasteredReady: the word historically has enough accepted checks AND the last
+  // stored check was acceptable. The user can mark it mastered from the stored view.
+  const storedMasteredReady = acceptedAttempts >= REQUIRED_ACCEPTED_ATTEMPTS && Boolean(currentRecord.feedback?.isAcceptable)
   const storedFeedback = getStoredFeedback(currentRecord)
 
   useEffect(() => {
@@ -291,10 +298,27 @@ export default function Study() {
                   <div className="text-sm leading-6" style={{ color: 'var(--wc-muted)' }}>
                     Accepted checks: {currentRecord.acceptedAttempts || 0}/{REQUIRED_ACCEPTED_ATTEMPTS}
                   </div>
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={handleAgain}
+                      className="flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                      style={{ borderColor: 'var(--wc-border)', color: 'var(--wc-text)', background: 'rgba(255,255,255,0.58)' }}
+                    >
+                      Again
+                    </button>
+                    <button
+                      onClick={handleMastered}
+                      disabled={!storedMasteredReady}
+                      className="flex-1 rounded-2xl px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#c7beb1]"
+                      style={{ background: 'linear-gradient(135deg, #4f9364 0%, #3f8157 100%)' }}
+                    >
+                      Mastered
+                    </button>
+                  </div>
                 </>
               ) : (
                 <div className="rounded-[20px] border px-4 py-3 text-sm leading-6" style={{ borderColor: 'rgba(69, 44, 27, 0.12)', background: 'rgba(255,255,255,0.55)', color: 'var(--wc-muted)' }}>
-                  Run `Self-check` to see whether your sentence is acceptable and how to revise it.
+                  Press Self-check to see whether your sentence is acceptable and how to revise it.
                 </div>
               )}
             </div>

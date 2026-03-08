@@ -8,9 +8,9 @@ vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({ user: { email: 'test@example.com' }, logout: vi.fn() }),
 }))
 
-// Nav uses useProgress — mock it to avoid API calls
-vi.mock('../hooks/useProgress', () => ({
-  default: () => ({ masteredCount: 0 }),
+// Nav uses useProgressContext — mock the context module
+vi.mock('../context/ProgressContext', () => ({
+  useProgressContext: () => ({ masteredCount: 0 }),
 }))
 
 function renderNav(path = '/') {

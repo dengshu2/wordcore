@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import useProgress from '../hooks/useProgress'
+import { useProgressContext } from '../context/ProgressContext'
 import { WORD_BANK_SIZE } from '../data/wordBankMeta'
 
 const TOTAL = WORD_BANK_SIZE
@@ -14,7 +15,9 @@ function getUpdatedTimestamp(record = {}) {
 }
 
 export default function Home() {
-  const { records, masteredCount } = useProgress()
+  const { records, masteredCount } = useProgressContext()
+
+  useEffect(() => { document.title = 'WordCore — Practice desk' }, [])
   const pct = Math.round((masteredCount / TOTAL) * 100)
   const remaining = TOTAL - masteredCount
   const entries = Object.entries(records)

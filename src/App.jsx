@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ProgressProvider } from './context/ProgressContext'
 import Nav from './components/Nav'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -34,10 +35,10 @@ function AppShell() {
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1440px] gap-6 lg:min-h-[calc(100vh-3rem)]">
         <Nav />
         <div
-          className="relative min-h-[calc(100vh-2rem)] flex-1 overflow-hidden rounded-[32px] border shadow-[var(--wc-shadow)] lg:min-h-[calc(100vh-3rem)]"
+          className="relative min-h-[calc(100vh-2rem)] flex-1 overflow-hidden rounded-[32px] border shadow-(--wc-shadow) lg:min-h-[calc(100vh-3rem)]"
           style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)' }}
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/50 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-white/50 to-transparent" />
           <Suspense fallback={<div className="px-6 py-10 text-sm" style={{ color: 'var(--wc-muted)' }}>Loading…</div>}>
             <Routes>
               <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
@@ -57,7 +58,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppShell />
+        <ProgressProvider>
+          <AppShell />
+        </ProgressProvider>
       </AuthProvider>
     </BrowserRouter>
   )

@@ -34,5 +34,6 @@ dist-ssr
 
 # Go build artifacts
 api/wordcore-api
+api/wordcore
 api/vendor/
 

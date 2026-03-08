@@ -116,8 +116,8 @@ func main() {
 		r.Use(jwtMiddleware(auth))
 
 		r.Get("/api/records", h.handleGetRecords)
+		r.Get("/api/records/export", h.handleExportCSV) // must be before /{word}
 		r.Put("/api/records/{word}", h.handleUpsertRecord)
-		r.Get("/api/records/export", h.handleExportCSV)
 		r.Post("/api/check-sentence", h.handleCheckSentence)
 	})
 

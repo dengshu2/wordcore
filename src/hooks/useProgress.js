@@ -105,13 +105,13 @@ export default function useProgress() {
     }, 600)
   }, [])
 
-  function updateRecord(word, updater) {
+  const updateRecord = useCallback((word, updater) => {
     setRecords(prev => {
       const next = normalizeRecord(updater(normalizeRecord(prev[word])))
       syncWord(word, next)
       return { ...prev, [word]: next }
     })
-  }
+  }, [syncWord])
 
   const setStatus = useCallback((word, status) => {
     updateRecord(word, record => ({
@@ -119,7 +119,7 @@ export default function useProgress() {
       status,
       updatedAt: new Date().toISOString(),
     }))
-  }, [syncWord])
+  }, [updateRecord])
 
   const saveDraft = useCallback((word, sentence) => {
     updateRecord(word, record => ({
@@ -128,7 +128,7 @@ export default function useProgress() {
       status: record.status === 'new' && sentence.trim() ? 'learning' : record.status,
       updatedAt: new Date().toISOString(),
     }))
-  }, [syncWord])
+  }, [updateRecord])
 
   const saveFeedback = useCallback((word, feedback, checkedSentence) => {
     const normalized = normalizeFeedback(feedback)
@@ -141,7 +141,7 @@ export default function useProgress() {
       acceptedAttempts: record.acceptedAttempts + (normalized.isAcceptable ? 1 : 0),
       updatedAt: new Date().toISOString(),
     }))
-  }, [syncWord])
+  }, [updateRecord])
 
   const progress = useMemo(
     () =>

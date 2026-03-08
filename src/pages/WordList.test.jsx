@@ -26,8 +26,8 @@ vi.mock('../data/wordBank', () => ({
   ]
 }))
 
-vi.mock('../hooks/useProgress', () => ({
-  default: () => ({
+vi.mock('../context/ProgressContext', () => ({
+  useProgressContext: () => ({
     records: {
       apple: {
         status: 'mastered',

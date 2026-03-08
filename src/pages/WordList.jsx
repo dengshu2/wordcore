@@ -1,8 +1,8 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/wordBank'
-import useProgress from '../hooks/useProgress'
+import { useProgressContext } from '../context/ProgressContext'
 import { buildWordCsv } from './wordExport'
 
 const FILTERS = ['All', 'Weak', 'Learning', 'Mastered', 'Written']
@@ -86,12 +86,14 @@ function compareBySort(left, right, records, sortKey) {
 }
 
 export default function WordList() {
-  const { records, masteredCount } = useProgress()
+  const { records, masteredCount } = useProgressContext()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('weak')
   const parentRef = useRef(null)
   const writtenCount = Object.values(records).filter(record => record.draft?.trim()).length
+
+  useEffect(() => { document.title = 'WordCore — Word bank' }, [])
 
   const filtered = useMemo(() => {
     return words

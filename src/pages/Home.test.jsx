@@ -3,8 +3,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi } from 'vitest'
 import Home from './Home'
 
-vi.mock('../hooks/useProgress', () => ({
-  default: () => ({
+vi.mock('../context/ProgressContext', () => ({
+  useProgressContext: () => ({
     masteredCount: 42,
     records: {
       apple: {

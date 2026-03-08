@@ -23,8 +23,8 @@ const mockSetStatus = vi.fn()
 const mockSaveDraft = vi.fn()
 const mockSaveFeedback = vi.fn()
 let mockRecords = {}
-vi.mock('../hooks/useProgress', () => ({
-  default: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, masteredCount: 0 })
+vi.mock('../context/ProgressContext', () => ({
+  useProgressContext: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, masteredCount: 0 })
 }))
 
 describe('Study', () => {

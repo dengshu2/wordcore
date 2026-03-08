@@ -1,16 +1,16 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import useProgress from '../hooks/useProgress'
+import { useProgressContext } from '../context/ProgressContext'
 import { WORD_BANK_SIZE } from '../data/wordBankMeta'
 
 const links = [
-  { to: '/', label: 'Home', icon: '01' },
-  { to: '/study', label: 'Study', icon: '02' },
-  { to: '/words', label: 'Words', icon: '03' },
+  { to: '/', label: 'Home', num: '01' },
+  { to: '/study', label: 'Study', num: '02' },
+  { to: '/words', label: 'Words', num: '03' },
 ]
 
 export default function Nav() {
-  const { masteredCount } = useProgress()
+  const { masteredCount } = useProgressContext()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -18,74 +18,146 @@ export default function Nav() {
     logout()
     navigate('/login', { replace: true })
   }
+
   const total = WORD_BANK_SIZE
-  const remaining = total - masteredCount
+  const pct = total > 0 ? Math.round((masteredCount / total) * 100) : 0
 
   return (
     <>
-      <aside className="hidden lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)] lg:w-[248px] lg:flex-none lg:flex-col lg:justify-between lg:rounded-[30px] lg:border lg:p-6 lg:shadow-[var(--wc-shadow)]" style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)' }}>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: 'var(--wc-warm)' }}>
-              WordCore
-            </div>
-            <p className="text-sm leading-6" style={{ color: 'var(--wc-muted)' }}>
-              A quiet workspace for steady vocabulary practice.
-            </p>
+      {/* ── Desktop sidebar ─────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)] lg:w-[240px] lg:flex-none lg:flex-col lg:rounded-[28px] lg:border lg:shadow-(--wc-shadow)"
+        style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)' }}
+      >
+        {/* Brand */}
+        <div className="px-5 pt-6 pb-4 border-b" style={{ borderColor: 'var(--wc-border)' }}>
+          <div
+            className="text-[10px] font-semibold uppercase tracking-[0.32em]"
+            style={{ color: 'var(--wc-warm)' }}
+          >
+            WordCore
           </div>
-
-          <nav className="space-y-2">
-            {links.map(({ to, label, icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  `flex items-center justify-between rounded-2xl border px-4 py-3 transition ${isActive ? 'shadow-sm' : ''
-                  }`
-                }
-                style={({ isActive }) => ({
-                  background: isActive ? 'var(--wc-surface-strong)' : 'transparent',
-                  borderColor: isActive ? 'rgba(31, 106, 82, 0.28)' : 'transparent',
-                  color: isActive ? 'var(--wc-text)' : 'var(--wc-muted)',
-                })}
-              >
-                <span className="font-medium">{label}</span>
-                <span className="rounded-full px-2 py-1 text-xs" style={{ background: 'rgba(31, 106, 82, 0.08)' }}>
-                  {icon}
-                </span>
-              </NavLink>
-            ))}
-          </nav>
+          <p className="mt-1.5 text-[13px] leading-5" style={{ color: 'var(--wc-muted)' }}>
+            A quiet space for steady vocabulary practice.
+          </p>
         </div>
 
-        <div className="rounded-[24px] border p-4" style={{ background: 'rgba(31, 106, 82, 0.06)', borderColor: 'rgba(31, 106, 82, 0.12)' }}>
-          <div className="text-xs uppercase tracking-[0.25em]" style={{ color: 'var(--wc-muted)' }}>
-            Progress
-          </div>
-          <div className="mt-3 text-3xl font-semibold">{masteredCount}</div>
-          <div className="mt-1 text-sm" style={{ color: 'var(--wc-muted)' }}>
-            mastered out of {total}
-          </div>
-          <div className="mt-4 h-2 rounded-full" style={{ background: 'rgba(31, 106, 82, 0.12)' }}>
+        {/* Navigation */}
+        <nav className="px-3 pt-3 space-y-0.5">
+          {links.map(({ to, label, num }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 ${isActive ? '' : 'hover:bg-black/4'
+                }`
+              }
+              style={({ isActive }) => ({
+                background: isActive ? 'rgba(31, 106, 82, 0.09)' : undefined,
+                color: isActive ? 'var(--wc-accent)' : 'var(--wc-muted)',
+              })}
+            >
+              {({ isActive }) => (
+                <>
+                  <span
+                    className="flex h-6 w-6 flex-none items-center justify-center rounded-lg text-[10px] font-semibold transition-all"
+                    style={{
+                      background: isActive
+                        ? 'rgba(31, 106, 82, 0.14)'
+                        : 'rgba(69, 44, 27, 0.07)',
+                      color: isActive ? 'var(--wc-accent)' : 'var(--wc-muted)',
+                    }}
+                  >
+                    {num}
+                  </span>
+                  <span>{label}</span>
+                  {isActive && (
+                    <span
+                      className="ml-auto h-1.5 w-1.5 rounded-full"
+                      style={{ background: 'var(--wc-accent)' }}
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Progress card */}
+        <div className="px-3 pb-3">
+          <div
+            className="rounded-[22px] p-4"
+            style={{
+              background: 'rgba(31, 106, 82, 0.06)',
+              border: '1px solid rgba(31, 106, 82, 0.11)',
+            }}
+          >
             <div
-              className="h-2 rounded-full transition-all"
-              style={{
-                width: `${Math.round((masteredCount / total) * 100)}%`,
-                background: 'linear-gradient(90deg, var(--wc-accent) 0%, #4a9a7d 100%)',
-              }}
-            />
-          </div>
-          <div className="mt-3 text-sm" style={{ color: 'var(--wc-muted)' }}>
-            {remaining} words still in rotation.
+              className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+              style={{ color: 'var(--wc-muted)' }}
+            >
+              Progress
+            </div>
+
+            <div className="mt-3 flex items-end gap-2">
+              <div className="text-[2.4rem] font-semibold leading-none" style={{ color: 'var(--wc-text)' }}>
+                {masteredCount}
+              </div>
+              <div className="mb-0.5 text-sm leading-5" style={{ color: 'var(--wc-muted)' }}>
+                / {total}
+              </div>
+            </div>
+
+            <div
+              className="mt-1 text-[12px] leading-4"
+              style={{ color: 'var(--wc-muted)' }}
+            >
+              mastered
+            </div>
+
+            {/* Progress bar */}
+            <div
+              className="mt-3.5 h-1.5 rounded-full overflow-hidden"
+              style={{ background: 'rgba(31, 106, 82, 0.12)' }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${pct}%`,
+                  background: 'linear-gradient(90deg, var(--wc-accent) 0%, #5aab84 100%)',
+                }}
+              />
+            </div>
+
+            <div
+              className="mt-2 text-[12px] leading-4"
+              style={{ color: 'var(--wc-muted)' }}
+            >
+              {pct}% complete · {total - masteredCount} remaining
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 border-t pt-4" style={{ borderColor: 'var(--wc-border)' }}>
-          <div className="truncate text-xs" style={{ color: 'var(--wc-muted)' }}>{user?.email}</div>
+        {/* User footer */}
+        <div
+          className="flex items-center justify-between gap-3 px-5 py-4 border-t"
+          style={{ borderColor: 'var(--wc-border)' }}
+        >
+          <div className="min-w-0">
+            <div
+              className="truncate text-[12px] font-medium"
+              style={{ color: 'var(--wc-text)' }}
+            >
+              {user?.email}
+            </div>
+          </div>
           <button
             onClick={handleLogout}
-            className="mt-2 text-xs font-medium underline-offset-2 hover:underline"
+            className="shrink-0 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition hover:bg-black/6"
             style={{ color: 'var(--wc-muted)' }}
           >
             Sign out
@@ -93,14 +165,22 @@ export default function Nav() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t px-3 py-2 lg:hidden" style={{ background: 'rgba(255, 250, 241, 0.95)', borderColor: 'var(--wc-border)', backdropFilter: 'blur(18px)' }}>
-        {links.map(({ to, label, icon }) => (
+      {/* ── Mobile bottom bar ─────────────────────────────────────────── */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 flex border-t px-3 py-2 lg:hidden"
+        style={{
+          background: 'rgba(255, 250, 241, 0.96)',
+          borderColor: 'var(--wc-border)',
+          backdropFilter: 'blur(18px)',
+        }}
+      >
+        {links.map(({ to, label, num }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center rounded-2xl px-2 py-2 text-xs transition ${isActive ? 'font-semibold' : ''
+              `flex flex-1 flex-col items-center rounded-xl px-2 py-2 text-[11px] transition ${isActive ? 'font-semibold' : ''
               }`
             }
             style={({ isActive }) => ({
@@ -108,7 +188,7 @@ export default function Nav() {
               background: isActive ? 'rgba(31, 106, 82, 0.08)' : 'transparent',
             })}
           >
-            <span className="text-[11px] tracking-[0.2em]">{icon}</span>
+            <span className="text-[10px] tracking-[0.22em] mb-0.5">{num}</span>
             {label}
           </NavLink>
         ))}
