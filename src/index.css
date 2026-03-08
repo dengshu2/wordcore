@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --wc-bg: #f5f1e8;
+  --wc-surface: rgba(255, 252, 246, 0.88);
+  --wc-surface-strong: #fffaf1;
+  --wc-border: rgba(69, 44, 27, 0.12);
+  --wc-text: #1f1a17;
+  --wc-muted: #6f6256;
+  --wc-accent: #1f6a52;
+  --wc-accent-soft: #d8eee5;
+  --wc-warm: #c77c43;
+  --wc-shadow: 0 22px 50px rgba(78, 55, 32, 0.12);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Georgia", serif;
+  background:
+    radial-gradient(circle at top left, rgba(199, 124, 67, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(31, 106, 82, 0.14), transparent 26%),
+    linear-gradient(180deg, #f8f5ee 0%, var(--wc-bg) 100%);
+  color: var(--wc-text);
+}
+
+body {
+  min-width: 320px;
+  background: transparent;
+  color: var(--wc-text);
+}
+
+#root {
+  min-height: 100vh;
+}

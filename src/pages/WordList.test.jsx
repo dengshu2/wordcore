@@ -26,7 +26,10 @@ vi.mock('../data/wordBank', () => ({
 }))
 
 vi.mock('../hooks/useProgress', () => ({
-  default: () => ({ progress: { apple: 'mastered', run: 'learning' } })
+  default: () => ({
+    progress: { apple: 'mastered', run: 'learning' },
+    drafts: { run: 'I run after dinner.' },
+  })
 }))
 
 describe('WordList', () => {
@@ -48,5 +51,22 @@ describe('WordList', () => {
     fireEvent.change(screen.getByPlaceholderText(/search/i), { target: { value: 'app' } })
     expect(screen.getByText('apple')).toBeInTheDocument()
     expect(screen.queryByText('run')).not.toBeInTheDocument()
+  })
+
+  it('filters to written words', () => {
+    render(<MemoryRouter><WordList /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /written/i }))
+    expect(screen.getByText('run')).toBeInTheDocument()
+    expect(screen.queryByText('apple')).not.toBeInTheDocument()
+  })
+
+  it('shows my sentence when a draft exists', () => {
+    render(<MemoryRouter><WordList /></MemoryRouter>)
+    expect(screen.getByText(/my sentence: i run after dinner\./i)).toBeInTheDocument()
+  })
+
+  it('shows an export button', () => {
+    render(<MemoryRouter><WordList /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /export csv/i })).toBeInTheDocument()
   })
 })

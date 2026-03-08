@@ -14,8 +14,8 @@ function renderNav(path = '/') {
 describe('Nav', () => {
   it('renders three navigation links', () => {
     renderNav()
-    expect(screen.getByText('Home')).toBeInTheDocument()
-    expect(screen.getByText('Study')).toBeInTheDocument()
-    expect(screen.getByText('Words')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /home/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /study/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /words/i }).length).toBeGreaterThan(0)
   })
 })

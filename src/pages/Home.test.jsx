@@ -7,14 +7,14 @@ vi.mock('../hooks/useProgress', () => ({
   default: () => ({ masteredCount: 42, progress: {} })
 }))
 
-vi.mock('../data/wordBank', () => ({
-  default: Array(3000).fill({ word: 'test', pos: 'noun', definition: 'a test', example: 'This is a test.' })
+vi.mock('../data/wordBankMeta', () => ({
+  WORD_BANK_SIZE: 3000,
 }))
 
 describe('Home', () => {
   it('shows mastered count', () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByText('42')).toBeInTheDocument()
+    expect(screen.getAllByText('42').length).toBeGreaterThan(0)
   })
 
   it('shows total word count', () => {

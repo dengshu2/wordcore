@@ -43,4 +43,17 @@ describe('useProgress', () => {
     act(() => result.current.setStatus('cherry', 'learning'))
     expect(result.current.masteredCount).toBe(2)
   })
+
+  it('persists drafts by word', () => {
+    const { result } = renderHook(() => useProgress())
+    act(() => result.current.saveDraft('apple', 'I ate an apple today.'))
+    expect(result.current.drafts.apple).toBe('I ate an apple today.')
+    expect(JSON.parse(localStorage.getItem('wordcore-drafts')).apple).toBe('I ate an apple today.')
+  })
+
+  it('loads existing drafts from localStorage on mount', () => {
+    localStorage.setItem('wordcore-drafts', JSON.stringify({ apple: 'Saved sentence.' }))
+    const { result } = renderHook(() => useProgress())
+    expect(result.current.drafts.apple).toBe('Saved sentence.')
+  })
 })
