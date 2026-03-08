@@ -7,9 +7,12 @@ const WORDS = [
 ]
 
 describe('buildWordRecords', () => {
-  it('combines word data, progress, and drafts', () => {
+  it('combines word data and learning records', () => {
     expect(
-      buildWordRecords(WORDS, { apple: 'mastered' }, { run: 'I run after school.' })
+      buildWordRecords(WORDS, {
+        apple: { status: 'mastered' },
+        run: { draft: 'I run after school.' },
+      })
     ).toEqual([
       {
         word: 'apple',
@@ -18,6 +21,9 @@ describe('buildWordRecords', () => {
         reference_sentence: 'I eat an apple every day.',
         my_sentence: '',
         status: 'mastered',
+        attempts: 0,
+        accepted_attempts: 0,
+        updated_at: '',
       },
       {
         word: 'run',
@@ -26,6 +32,9 @@ describe('buildWordRecords', () => {
         reference_sentence: 'She runs every morning.',
         my_sentence: 'I run after school.',
         status: 'learning',
+        attempts: 0,
+        accepted_attempts: 0,
+        updated_at: '',
       },
     ])
   })
@@ -35,11 +44,15 @@ describe('buildWordCsv', () => {
   it('returns a CSV string with escaped values', () => {
     const csv = buildWordCsv(
       WORDS,
-      { apple: 'mastered' },
-      { apple: 'I said "apple", then ate it.' }
+      {
+        apple: {
+          status: 'mastered',
+          draft: 'I said "apple", then ate it.',
+        },
+      }
     )
 
-    expect(csv).toContain('word,pos,definition,reference_sentence,my_sentence,status')
+    expect(csv).toContain('word,pos,definition,reference_sentence,my_sentence,status,attempts,accepted_attempts,updated_at')
     expect(csv).toContain('"I said ""apple"", then ate it."')
   })
 })

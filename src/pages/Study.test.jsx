@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Study from './Study'
+import { checkSentence } from '../services/sentenceCheck'
 
 const MOCK_WORDS = [
   { word: 'abandon', pos: 'verb', definition: 'to leave something permanently', example: 'She had to abandon her car in the snow.' },
@@ -14,25 +15,47 @@ vi.mock('../data/wordBank', () => ({
     { word: 'able', pos: 'adjective', definition: 'having the skill to do something', example: 'He was able to fix the car himself.' },
   ]
 }))
+vi.mock('../services/sentenceCheck', () => ({
+  checkSentence: vi.fn(),
+}))
 
 const mockSetStatus = vi.fn()
 const mockSaveDraft = vi.fn()
+const mockSaveFeedback = vi.fn()
+let mockRecords = {}
 vi.mock('../hooks/useProgress', () => ({
-  default: () => ({ progress: {}, drafts: {}, setStatus: mockSetStatus, saveDraft: mockSaveDraft, masteredCount: 0 })
+  default: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, masteredCount: 0 })
 }))
 
 describe('Study', () => {
   beforeEach(() => {
+    mockRecords = {}
     mockSetStatus.mockClear()
     mockSaveDraft.mockClear()
+    mockSaveFeedback.mockClear()
+    vi.mocked(checkSentence).mockClear()
+    vi.mocked(checkSentence).mockResolvedValue({
+      is_acceptable: true,
+      grammar_feedback: '',
+      naturalness_feedback: '',
+      suggested_revision: 'I am going to the park.',
+    })
   })
 
   function getSentenceInput() {
     return screen.getByPlaceholderText(/write one natural sentence/i)
   }
 
+  function renderStudy(initialEntries = ['/']) {
+    return render(
+      <MemoryRouter initialEntries={initialEntries}>
+        <Study />
+      </MemoryRouter>
+    )
+  }
+
   it('shows the word and its definition', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+    renderStudy()
     // One of the two words must be shown
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     expect(shown).toBeTruthy()
@@ -40,48 +63,104 @@ describe('Study', () => {
   })
 
   it('shows the reference sentence immediately', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+    renderStudy()
     expect(screen.getByText(/She had to abandon|He was able to fix/)).toBeInTheDocument()
   })
 
-  it('reveals self-check guidance after clicking Self-check', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    expect(screen.getByText(/check whether your sentence keeps the same pattern/i)).toBeInTheDocument()
+  it('shows the last saved feedback before a new self-check', () => {
+    mockRecords = {
+      abandon: {
+        status: 'learning',
+        draft: 'The word abandon is in this sentence.',
+        lastCheckedSentence: 'The word abandon is in this sentence.',
+        acceptedAttempts: 1,
+        feedback: {
+          isAcceptable: false,
+          grammarFeedback: 'Use a more natural sentence pattern.',
+          suggestedRevision: 'They had to abandon the trip because of the storm.',
+        },
+      },
+      able: {
+        status: 'learning',
+        draft: 'He is able to finish the work tonight.',
+        lastCheckedSentence: 'He is able to finish the work tonight.',
+        acceptedAttempts: 1,
+        feedback: {
+          isAcceptable: false,
+          grammarFeedback: 'Use a more natural sentence pattern.',
+          suggestedRevision: 'She was able to finish the work before dinner.',
+        },
+      },
+    }
+    renderStudy()
+    expect(screen.getByText(/last check: this sentence still needed revision\./i)).toBeInTheDocument()
+    expect(screen.getByText(/last checked sentence:/i)).toBeInTheDocument()
+    expect(screen.getByText(/use a more natural sentence pattern\./i)).toBeInTheDocument()
+    expect(screen.getByText(/suggested:/i)).toBeInTheDocument()
+    expect(screen.getByText(/accepted checks: 1\/2/i)).toBeInTheDocument()
   })
 
-  it('calls setStatus mastered when Mastered is clicked', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+  it('reveals AI feedback after clicking Self-check', async () => {
+    renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    expect(await screen.findByText(/this sentence is acceptable for study use/i)).toBeInTheDocument()
+    expect(screen.getByText(/suggested: i am going to the park\./i)).toBeInTheDocument()
+    expect(mockSaveFeedback).toHaveBeenCalledWith(
+      shown.word,
+      expect.objectContaining({ is_acceptable: true }),
+      `The word ${shown.word} is in this sentence.`
+    )
+  })
+
+  it('supports Cmd/Ctrl+Enter as a self-check shortcut', async () => {
+    renderStudy()
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    fireEvent.keyDown(getSentenceInput(), { key: 'Enter', ctrlKey: true })
+
+    expect(await screen.findByText(/this sentence is acceptable for study use/i)).toBeInTheDocument()
+    expect(checkSentence).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls setStatus mastered when Mastered is clicked', async () => {
+    mockRecords = {
+      abandon: { acceptedAttempts: 1, lastCheckedSentence: '' },
+      able: { acceptedAttempts: 1, lastCheckedSentence: '' },
+    }
+    renderStudy()
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    await screen.findByText(/suggested:/i)
     fireEvent.click(screen.getByRole('button', { name: /mastered/i }))
     expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'mastered')
   })
 
-  it('calls setStatus learning when Again is clicked', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+  it('calls setStatus learning when Again is clicked', async () => {
+    renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    await screen.findByText(/suggested:/i)
     fireEvent.click(screen.getByRole('button', { name: /again/i }))
     expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'learning')
   })
 
-  it('advances to the next word after clicking Again', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+  it('advances to the next word after clicking Again', async () => {
+    renderStudy()
     const first = MOCK_WORDS.find(w => screen.queryByText(w.word))
     const other = MOCK_WORDS.find(w => w.word !== first.word)
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${first.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    await screen.findByText(/suggested:/i)
     fireEvent.click(screen.getByRole('button', { name: /again/i }))
     expect(screen.getByText(other.word)).toBeInTheDocument()
   })
 
   it('disables Self-check until the user writes a sentence containing the target word', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+    renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     const button = screen.getByRole('button', { name: /self-check/i })
     expect(button).toBeDisabled()
@@ -95,9 +174,35 @@ describe('Study', () => {
   })
 
   it('saves drafts while typing', () => {
-    render(<MemoryRouter><Study /></MemoryRouter>)
+    renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     expect(mockSaveDraft).toHaveBeenLastCalledWith(shown.word, `The word ${shown.word} is in this sentence.`)
+  })
+
+  it('shows an AI configuration error when the key is missing', async () => {
+    vi.mocked(checkSentence).mockRejectedValueOnce(new Error('Missing VITE_GEMINI_API_KEY'))
+    renderStudy()
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    expect(await screen.findByText(/set vite_gemini_api_key to enable ai sentence checking/i)).toBeInTheDocument()
+  })
+
+  it('keeps Mastered disabled until enough acceptable checks are recorded', async () => {
+    renderStudy()
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+
+    expect(await screen.findByText(/acceptable checks: 1\/2/i)).toBeInTheDocument()
+    expect(screen.getByText(/complete 1 more acceptable self-check/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /mastered/i })).toBeDisabled()
+  })
+
+  it('can open a specific word from the word bank link', () => {
+    renderStudy(['/study?word=able'])
+    expect(screen.getByText('able')).toBeInTheDocument()
+    expect(screen.getByText(/studying this word from the word bank/i)).toBeInTheDocument()
   })
 })

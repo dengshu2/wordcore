@@ -23,6 +23,18 @@ npm run lint     # ESLint 检查
 npm run build    # 构建生产包
 ```
 
+## AI 句子校验
+
+学习页的 `Self-check` 会调用 Gemini 做轻量句子反馈。开发前请先配置：
+
+```bash
+cp .env.example .env
+# 编辑 .env，填入你的 GEMINI_API_KEY 和 VITE_GEMINI_API_KEY
+```
+
+- `GEMINI_API_KEY`：离线生成词库脚本使用
+- `VITE_GEMINI_API_KEY`：前端运行时的句子校验使用
+
 ## 词库数据说明
 
 `src/data/words.json` 包含 3000 个高频英语词汇，每个词条包含：

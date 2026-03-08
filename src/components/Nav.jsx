@@ -15,17 +15,14 @@ export default function Nav() {
 
   return (
     <>
-      <aside className="hidden lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)] lg:w-[280px] lg:flex-none lg:flex-col lg:justify-between lg:rounded-[30px] lg:border lg:p-6 lg:shadow-[var(--wc-shadow)]" style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)' }}>
-        <div className="space-y-8">
-          <div className="space-y-3">
+      <aside className="hidden lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)] lg:w-[248px] lg:flex-none lg:flex-col lg:justify-between lg:rounded-[30px] lg:border lg:p-6 lg:shadow-[var(--wc-shadow)]" style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)' }}>
+        <div className="space-y-6">
+          <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: 'var(--wc-warm)' }}>
               WordCore
             </div>
-            <div className="text-3xl leading-tight font-semibold">
-              Build vocabulary with a calmer, steadier rhythm.
-            </div>
             <p className="text-sm leading-6" style={{ color: 'var(--wc-muted)' }}>
-              A desktop study space inspired by the clear task framing of Duolingo and the focused repetition loop of Anki.
+              A quiet workspace for steady vocabulary practice.
             </p>
           </div>
 
@@ -59,7 +56,7 @@ export default function Nav() {
           <div className="text-xs uppercase tracking-[0.25em]" style={{ color: 'var(--wc-muted)' }}>
             Progress
           </div>
-          <div className="mt-3 text-4xl font-semibold">{masteredCount}</div>
+          <div className="mt-3 text-3xl font-semibold">{masteredCount}</div>
           <div className="mt-1 text-sm" style={{ color: 'var(--wc-muted)' }}>
             mastered out of {total}
           </div>

@@ -5,35 +5,35 @@ import useProgress from './useProgress'
 beforeEach(() => localStorage.clear())
 
 describe('useProgress', () => {
-  it('returns empty progress initially', () => {
+  it('returns empty records initially', () => {
     const { result } = renderHook(() => useProgress())
-    expect(result.current.progress).toEqual({})
+    expect(result.current.records).toEqual({})
   })
 
   it('marks a word as mastered', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.setStatus('apple', 'mastered'))
-    expect(result.current.progress['apple']).toBe('mastered')
+    expect(result.current.records.apple.status).toBe('mastered')
   })
 
   it('marks a word as learning', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.setStatus('apple', 'mastered'))
     act(() => result.current.setStatus('apple', 'learning'))
-    expect(result.current.progress['apple']).toBe('learning')
+    expect(result.current.records.apple.status).toBe('learning')
   })
 
-  it('persists to localStorage', () => {
+  it('persists records to localStorage', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.setStatus('apple', 'mastered'))
-    const stored = JSON.parse(localStorage.getItem('wordcore-progress'))
-    expect(stored['apple']).toBe('mastered')
+    const stored = JSON.parse(localStorage.getItem('wordcore-records'))
+    expect(stored.apple.status).toBe('mastered')
   })
 
-  it('loads existing progress from localStorage on mount', () => {
-    localStorage.setItem('wordcore-progress', JSON.stringify({ banana: 'mastered' }))
+  it('loads existing records from localStorage on mount', () => {
+    localStorage.setItem('wordcore-records', JSON.stringify({ banana: { status: 'mastered' } }))
     const { result } = renderHook(() => useProgress())
-    expect(result.current.progress['banana']).toBe('mastered')
+    expect(result.current.records.banana.status).toBe('mastered')
   })
 
   it('counts mastered words correctly', () => {
@@ -47,13 +47,32 @@ describe('useProgress', () => {
   it('persists drafts by word', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.saveDraft('apple', 'I ate an apple today.'))
-    expect(result.current.drafts.apple).toBe('I ate an apple today.')
-    expect(JSON.parse(localStorage.getItem('wordcore-drafts')).apple).toBe('I ate an apple today.')
+    expect(result.current.records.apple.draft).toBe('I ate an apple today.')
+    expect(JSON.parse(localStorage.getItem('wordcore-records')).apple.draft).toBe('I ate an apple today.')
   })
 
-  it('loads existing drafts from localStorage on mount', () => {
+  it('loads legacy progress and drafts into records on mount', () => {
+    localStorage.setItem('wordcore-progress', JSON.stringify({ banana: 'mastered' }))
     localStorage.setItem('wordcore-drafts', JSON.stringify({ apple: 'Saved sentence.' }))
     const { result } = renderHook(() => useProgress())
-    expect(result.current.drafts.apple).toBe('Saved sentence.')
+    expect(result.current.records.apple.draft).toBe('Saved sentence.')
+    expect(result.current.records.apple.status).toBe('learning')
+    expect(result.current.records.banana.status).toBe('mastered')
+  })
+
+  it('stores AI feedback with attempts', () => {
+    const { result } = renderHook(() => useProgress())
+    act(() =>
+      result.current.saveFeedback('apple', {
+        is_acceptable: true,
+        suggested_revision: 'I ate an apple after lunch.',
+      }, 'I ate apple after lunch.')
+    )
+
+    expect(result.current.records.apple.lastCheckedSentence).toBe('I ate apple after lunch.')
+    expect(result.current.records.apple.feedback.isAcceptable).toBe(true)
+    expect(result.current.records.apple.feedback.suggestedRevision).toBe('I ate an apple after lunch.')
+    expect(result.current.records.apple.attempts).toBe(1)
+    expect(result.current.records.apple.acceptedAttempts).toBe(1)
   })
 })

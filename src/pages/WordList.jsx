@@ -1,35 +1,119 @@
 import { useState, useMemo, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/wordBank'
 import useProgress from '../hooks/useProgress'
 import { buildWordCsv } from './wordExport'
 
-const FILTERS = ['All', 'Learning', 'Mastered', 'Written']
-const ROW_HEIGHT = 92
+const FILTERS = ['All', 'Weak', 'Learning', 'Mastered', 'Written']
+const SORTS = [
+  { key: 'weak', label: 'Weak first' },
+  { key: 'recent', label: 'Recently updated' },
+  { key: 'alpha', label: 'A-Z' },
+]
+const ROW_HEIGHT = 176
+
+function isWeakRecord(record = {}) {
+  return record.status === 'learning' && record.attempts > 0 && !record.feedback?.isAcceptable
+}
+
+function getStatusLabel(record = {}) {
+  if (record.status === 'mastered') return 'Mastered'
+  if (record.draft?.trim()) return 'Written'
+  return 'Learning'
+}
+
+function getFeedbackSummary(record = {}) {
+  if (record.feedback?.isAcceptable) {
+    return 'Latest check: acceptable'
+  }
+  if (record.feedback?.grammarFeedback) {
+    return `Latest check: ${record.feedback.grammarFeedback}`
+  }
+  if (record.feedback?.naturalnessFeedback) {
+    return `Latest check: ${record.feedback.naturalnessFeedback}`
+  }
+  return 'No AI feedback yet'
+}
+
+function getUpdatedLabel(updatedAt) {
+  if (!updatedAt) return 'Not checked yet'
+
+  const date = new Date(updatedAt)
+  if (Number.isNaN(date.getTime())) return 'Not checked yet'
+
+  return date.toLocaleDateString('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
+function getPriorityScore(record = {}) {
+  if (isWeakRecord(record)) return 0
+  if (record.status === 'learning' && record.attempts > 0) return 1
+  if (record.status === 'learning' && record.draft?.trim()) return 2
+  if (record.status === 'learning') return 3
+  if (record.status === 'mastered') return 4
+  return 5
+}
+
+function getUpdatedTimestamp(record = {}) {
+  const timestamp = new Date(record.updatedAt || 0).getTime()
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function compareBySort(left, right, records, sortKey) {
+  const leftRecord = records[left.word] || {}
+  const rightRecord = records[right.word] || {}
+
+  if (sortKey === 'recent') {
+    const updatedDelta = getUpdatedTimestamp(rightRecord) - getUpdatedTimestamp(leftRecord)
+    if (updatedDelta !== 0) return updatedDelta
+  }
+
+  if (sortKey === 'alpha') {
+    return left.word.localeCompare(right.word)
+  }
+
+  const priorityDelta = getPriorityScore(leftRecord) - getPriorityScore(rightRecord)
+  if (priorityDelta !== 0) return priorityDelta
+
+  const updatedDelta = getUpdatedTimestamp(rightRecord) - getUpdatedTimestamp(leftRecord)
+  if (updatedDelta !== 0) return updatedDelta
+
+  return left.word.localeCompare(right.word)
+}
 
 export default function WordList() {
-  const { progress, drafts } = useProgress()
+  const { records, masteredCount } = useProgress()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
+  const [sort, setSort] = useState('weak')
   const parentRef = useRef(null)
-  const masteredCount = Object.values(progress).filter(status => status === 'mastered').length
-  const writtenCount = Object.values(drafts).filter(sentence => sentence?.trim()).length
+  const writtenCount = Object.values(records).filter(record => record.draft?.trim()).length
 
   const filtered = useMemo(() => {
-    return words.filter(w => {
-      const matchesQuery = w.word.toLowerCase().includes(query.toLowerCase())
-      const status = progress[w.word] === 'mastered' ? 'Mastered' : 'Learning'
-      const hasDraft = Boolean(drafts[w.word]?.trim())
-      const matchesFilter =
-        filter === 'All' ||
-        status === filter ||
-        (filter === 'Written' && hasDraft)
-      return matchesQuery && matchesFilter
-    })
-  }, [query, filter, progress, drafts])
+    return words
+      .filter(w => {
+        const matchesQuery = w.word.toLowerCase().includes(query.toLowerCase())
+        const record = records[w.word] || {}
+        const status = record.status === 'mastered' ? 'Mastered' : 'Learning'
+        const hasDraft = Boolean(record.draft?.trim())
+        const matchesFilter =
+          filter === 'All' ||
+          status === filter ||
+          (filter === 'Written' && hasDraft) ||
+          (filter === 'Weak' && isWeakRecord(record))
+        return matchesQuery && matchesFilter
+      })
+      .sort((left, right) => compareBySort(left, right, records, sort))
+  }, [query, filter, records, sort])
+
+  const weakCount = Object.values(records).filter(record => isWeakRecord(record)).length
 
   function handleExportCsv() {
-    const csv = buildWordCsv(filtered, progress, drafts)
+    const csv = buildWordCsv(filtered, records)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -77,6 +161,10 @@ export default function WordList() {
             <div className="mt-2 text-2xl font-semibold">{writtenCount}</div>
           </div>
         </div>
+        <div className="rounded-[22px] border px-4 py-3 xl:w-[150px]" style={{ borderColor: 'rgba(154, 90, 31, 0.14)', background: 'rgba(199, 124, 67, 0.08)' }}>
+          <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Weak</div>
+          <div className="mt-2 text-2xl font-semibold">{weakCount}</div>
+        </div>
       </div>
 
       <div className="mt-8 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border" style={{ background: 'rgba(255,255,255,0.62)', borderColor: 'var(--wc-border)' }}>
@@ -106,6 +194,24 @@ export default function WordList() {
                   </button>
                 ))}
               </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-xs uppercase tracking-[0.22em]" style={{ color: 'var(--wc-muted)' }}>
+                  Sort
+                </div>
+                {SORTS.map(option => (
+                  <button
+                    key={option.key}
+                    onClick={() => setSort(option.key)}
+                    className="rounded-full px-4 py-2 text-sm font-medium transition"
+                    style={{
+                      background: sort === option.key ? 'rgba(199, 124, 67, 0.92)' : 'rgba(199, 124, 67, 0.08)',
+                      color: sort === option.key ? '#fff' : '#8a5a33',
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="flex justify-start lg:justify-end">
               <button
@@ -120,7 +226,7 @@ export default function WordList() {
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_140px] border-b px-6 py-3 text-xs uppercase tracking-[0.22em]" style={{ color: 'var(--wc-muted)', borderColor: 'var(--wc-border)' }}>
-          <div>Word and sentences</div>
+          <div>Word and learning record</div>
           <div className="text-right">Status</div>
         </div>
 
@@ -131,8 +237,12 @@ export default function WordList() {
             <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
               {virtualizer.getVirtualItems().map(virtualItem => {
                 const w = filtered[virtualItem.index]
-                const isMastered = progress[w.word] === 'mastered'
-                const mySentence = drafts[w.word]?.trim()
+                const record = records[w.word] || {}
+                const isMastered = record?.status === 'mastered'
+                const mySentence = record?.draft?.trim()
+                const statusLabel = getStatusLabel(record)
+                const feedbackSummary = getFeedbackSummary(record)
+                const attemptsLabel = `${record.attempts || 0}/${record.acceptedAttempts || 0}`
 
                 return (
                   <div
@@ -144,13 +254,20 @@ export default function WordList() {
                       right: 0,
                       height: `${ROW_HEIGHT}px`,
                     }}
-                    className="grid grid-cols-[minmax(0,1fr)_140px] items-center gap-4 border-b px-6"
+                    className="grid grid-cols-[minmax(0,1fr)_140px] gap-4 border-b px-6 py-4"
                     aria-label={w.word}
                   >
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <span className="text-lg font-semibold">{w.word}</span>
                         <span className="text-sm" style={{ color: 'var(--wc-muted)' }}>{w.pos}</span>
+                        <Link
+                          to={`/study?word=${encodeURIComponent(w.word)}`}
+                          className="rounded-full px-3 py-1 text-xs font-medium"
+                          style={{ background: 'rgba(31, 106, 82, 0.08)', color: 'var(--wc-accent)' }}
+                        >
+                          Study word
+                        </Link>
                       </div>
                       {mySentence ? (
                         <div className="truncate text-sm" style={{ color: 'var(--wc-text)' }}>
@@ -161,9 +278,23 @@ export default function WordList() {
                           Reference: {w.example}
                         </div>
                       )}
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--wc-muted)' }}>
+                        <span>Attempts: {attemptsLabel}</span>
+                        <span>Updated: {getUpdatedLabel(record.updatedAt)}</span>
+                      </div>
+                      <div className="mt-2 truncate text-sm" style={{ color: isWeakRecord(record) ? '#9a5a1f' : 'var(--wc-muted)' }}>
+                        {feedbackSummary}
+                      </div>
                     </div>
-                    <div className="text-right text-sm font-medium" style={{ color: isMastered ? 'var(--wc-accent)' : 'var(--wc-muted)' }}>
-                      {isMastered ? 'Mastered' : mySentence ? 'Written' : 'Learning'}
+                    <div className="flex flex-col items-end justify-between gap-2 text-right">
+                      <div className="text-sm font-medium" style={{ color: isMastered ? 'var(--wc-accent)' : isWeakRecord(record) ? '#9a5a1f' : 'var(--wc-muted)' }}>
+                        {statusLabel}
+                      </div>
+                      {isWeakRecord(record) && (
+                        <div className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: 'rgba(199, 124, 67, 0.12)', color: '#9a5a1f' }}>
+                          Needs review
+                        </div>
+                      )}
                     </div>
                   </div>
                 )

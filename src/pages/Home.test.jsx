@@ -4,7 +4,25 @@ import { describe, it, expect, vi } from 'vitest'
 import Home from './Home'
 
 vi.mock('../hooks/useProgress', () => ({
-  default: () => ({ masteredCount: 42, progress: {} })
+  default: () => ({
+    masteredCount: 42,
+    records: {
+      apple: {
+        status: 'learning',
+        attempts: 2,
+        acceptedAttempts: 0,
+        updatedAt: '2026-03-08T09:00:00.000Z',
+        feedback: { isAcceptable: false },
+      },
+      banana: {
+        status: 'learning',
+        attempts: 2,
+        acceptedAttempts: 1,
+        updatedAt: '2026-03-08T10:00:00.000Z',
+        feedback: { isAcceptable: true },
+      },
+    },
+  })
 }))
 
 vi.mock('../data/wordBankMeta', () => ({
@@ -24,6 +42,12 @@ describe('Home', () => {
 
   it('has a Start Practice link', () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByRole('link', { name: /start practice/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /start next word/i })).toBeInTheDocument()
+  })
+
+  it('shows actionable weak and recent sections', () => {
+    render(<MemoryRouter><Home /></MemoryRouter>)
+    expect(screen.getByRole('link', { name: /open "apple" and fix the latest problem first\./i })).toHaveAttribute('href', '/study?word=apple')
+    expect(screen.getByRole('link', { name: /ready soon.*banana/i })).toHaveAttribute('href', '/study?word=banana')
   })
 })

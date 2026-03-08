@@ -21,6 +21,26 @@ describe('getNextWord', () => {
     ).toEqual({ word: 'delta' })
   })
 
+  it('prioritizes recently weak learning words ahead of other learning words', () => {
+    expect(
+      getNextWord(WORDS, {
+        alpha: { status: 'learning', attempts: 1, feedback: { isAcceptable: false } },
+        bravo: { status: 'learning', attempts: 1, feedback: { isAcceptable: true } },
+      }, [], null)
+    ).toEqual({ word: 'charlie' })
+  })
+
+  it('returns weak learning words before stable learning words when unseen words are exhausted', () => {
+    expect(
+      getNextWord(WORDS, {
+        alpha: { status: 'learning', attempts: 2, feedback: { isAcceptable: false } },
+        bravo: { status: 'learning', attempts: 3, feedback: { isAcceptable: true } },
+        charlie: { status: 'mastered' },
+        delta: { status: 'mastered' },
+      }, [], null)
+    ).toEqual({ word: 'alpha' })
+  })
+
   it('falls back to mastered words after unfinished queues are exhausted', () => {
     expect(
       getNextWord(WORDS, {
