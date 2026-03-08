@@ -32,7 +32,14 @@ describe('Study', () => {
     mockRecords = {}
     mockSetStatus.mockClear()
     mockSaveDraft.mockClear()
-    mockSaveFeedback.mockClear()
+    // Simulate the real saveFeedback: updates acceptedAttempts in mockRecords.
+    mockSaveFeedback.mockImplementation((word, feedbackResult) => {
+      const prev = mockRecords[word] || {}
+      mockRecords[word] = {
+        ...prev,
+        acceptedAttempts: (prev.acceptedAttempts || 0) + (feedbackResult?.is_acceptable ? 1 : 0),
+      }
+    })
     vi.mocked(checkSentence).mockClear()
     vi.mocked(checkSentence).mockResolvedValue({
       is_acceptable: true,
@@ -73,7 +80,7 @@ describe('Study', () => {
         status: 'learning',
         draft: 'The word abandon is in this sentence.',
         lastCheckedSentence: 'The word abandon is in this sentence.',
-        acceptedAttempts: 1,
+        acceptedAttempts: 2,
         feedback: {
           isAcceptable: false,
           grammarFeedback: 'Use a more natural sentence pattern.',
@@ -84,7 +91,7 @@ describe('Study', () => {
         status: 'learning',
         draft: 'He is able to finish the work tonight.',
         lastCheckedSentence: 'He is able to finish the work tonight.',
-        acceptedAttempts: 1,
+        acceptedAttempts: 2,
         feedback: {
           isAcceptable: false,
           grammarFeedback: 'Use a more natural sentence pattern.',
@@ -97,7 +104,7 @@ describe('Study', () => {
     expect(screen.getByText(/last checked sentence:/i)).toBeInTheDocument()
     expect(screen.getByText(/use a more natural sentence pattern\./i)).toBeInTheDocument()
     expect(screen.getByText(/suggested:/i)).toBeInTheDocument()
-    expect(screen.getByText(/accepted checks: 1\/2/i)).toBeInTheDocument()
+    expect(screen.getByText(/accepted checks: 2\/3/i)).toBeInTheDocument()
   })
 
   it('reveals AI feedback after clicking Self-check', async () => {
@@ -126,8 +133,8 @@ describe('Study', () => {
 
   it('calls setStatus mastered when Mastered is clicked', async () => {
     mockRecords = {
-      abandon: { acceptedAttempts: 1, lastCheckedSentence: '' },
-      able: { acceptedAttempts: 1, lastCheckedSentence: '' },
+      abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },
+      able: { acceptedAttempts: 2, lastCheckedSentence: '' },
     }
     renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
@@ -195,8 +202,8 @@ describe('Study', () => {
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
 
-    expect(await screen.findByText(/acceptable checks: 1\/2/i)).toBeInTheDocument()
-    expect(screen.getByText(/complete 1 more acceptable self-check/i)).toBeInTheDocument()
+    expect(await screen.findByText(/acceptable checks: 1\/3/i)).toBeInTheDocument()
+    expect(screen.getByText(/complete 2 more acceptable self-check/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /mastered/i })).toBeDisabled()
   })
 

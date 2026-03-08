@@ -5,7 +5,7 @@ import useProgress from '../hooks/useProgress'
 import { getNextWord, includesTargetWord } from './studySession'
 import { checkSentence } from '../services/sentenceCheck'
 
-const REQUIRED_ACCEPTED_ATTEMPTS = 2
+const REQUIRED_ACCEPTED_ATTEMPTS = 3
 
 function getStoredFeedback(record) {
   if (!record?.lastCheckedSentence) return null
@@ -38,14 +38,22 @@ export default function Study() {
   const [feedback, setFeedback] = useState(null)
   const [checkError, setCheckError] = useState('')
   const [isChecking, setIsChecking] = useState(false)
+  // Track unique sentences accepted within this session for this word.
+  // Prevents fast-looping the same sentence to hit the mastery threshold.
+  const [sessionAcceptedSentences, setSessionAcceptedSentences] = useState(() => new Set())
 
   const currentRecord = current ? records[current.word] || {} : {}
   const hasSentence = sentence.trim().length > 0
   const hasTargetWord = current ? includesTargetWord(sentence, current.word) : false
   const canCompare = hasSentence && hasTargetWord
-  const persistedCurrentCheck = currentRecord.lastCheckedSentence === sentence && hasSentence
-  const acceptedAttempts = (currentRecord.acceptedAttempts || 0) + (feedback?.is_acceptable && !persistedCurrentCheck ? 1 : 0)
-  const masteredReady = Boolean(feedback?.is_acceptable) && acceptedAttempts >= REQUIRED_ACCEPTED_ATTEMPTS
+  // acceptedAttempts comes from the persisted record (updated by saveFeedback after each check).
+  // sessionAcceptedSentences tracks unique sentences approved this session to prevent replaying
+  // the same sentence repeatedly to hit the mastery threshold within one sitting.
+  const acceptedAttempts = currentRecord.acceptedAttempts || 0
+  const hasSessionAccepted = sessionAcceptedSentences.size > 0
+  // Mastered requires: (1) latest check is acceptable, (2) enough total accepted attempts,
+  // (3) at least one new sentence was accepted in this session.
+  const masteredReady = Boolean(feedback?.is_acceptable) && acceptedAttempts >= REQUIRED_ACCEPTED_ATTEMPTS && hasSessionAccepted
   const remainingAcceptedChecks = Math.max(REQUIRED_ACCEPTED_ATTEMPTS - acceptedAttempts, 0)
   const storedFeedback = getStoredFeedback(currentRecord)
 
@@ -60,6 +68,7 @@ export default function Study() {
     setFeedback(null)
     setCheckError('')
     setIsChecking(false)
+    setSessionAcceptedSentences(new Set())
   }, [requestedWord, current?.word, records])
 
   function advance(nextRecords) {
@@ -71,6 +80,7 @@ export default function Study() {
     setFeedback(null)
     setCheckError('')
     setIsChecking(false)
+    setSessionAcceptedSentences(new Set())
   }
 
   async function handleSelfCheck() {
@@ -88,6 +98,9 @@ export default function Study() {
       setFeedback(result)
       saveFeedback(current.word, result, sentence)
       setRevealed(true)
+      if (result.is_acceptable) {
+        setSessionAcceptedSentences(prev => new Set([...prev, sentence.trim()]))
+      }
     } catch (error) {
       setFeedback(null)
       setCheckError(
