@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { fetchRecords, upsertRecord } from '../services/api'
+import { getToken } from '../services/api'
 
-const STORAGE_KEY = 'wordcore-records'
-const LEGACY_PROGRESS_KEY = 'wordcore-progress'
-const LEGACY_DRAFTS_KEY = 'wordcore-drafts'
+// ── Normalization ─────────────────────────────────────────────────────────────
 
 function normalizeFeedback(feedback = {}) {
   return {
@@ -15,117 +15,140 @@ function normalizeFeedback(feedback = {}) {
 
 function normalizeRecord(record = {}) {
   return {
-    status: record?.status === 'mastered' ? 'mastered' : record?.status === 'learning' ? 'learning' : 'new',
+    status: ['mastered', 'learning', 'new'].includes(record?.status) ? record.status : 'new',
     draft: String(record?.draft || ''),
-    lastCheckedSentence: String(record?.lastCheckedSentence || ''),
-    feedback: normalizeFeedback(record?.feedback),
+    lastCheckedSentence: String(record?.lastCheckedSentence || record?.last_checked_sentence || ''),
+    feedback: normalizeFeedback(record?.feedback ?? {
+      isAcceptable: record?.feedback_acceptable,
+      grammarFeedback: record?.feedback_grammar,
+      naturalnessFeedback: record?.feedback_naturalness,
+      suggestedRevision: record?.feedback_revision,
+    }),
     attempts: Number.isFinite(record?.attempts) ? record.attempts : 0,
-    acceptedAttempts: Number.isFinite(record?.acceptedAttempts) ? record.acceptedAttempts : 0,
-    updatedAt: String(record?.updatedAt || ''),
+    acceptedAttempts: Number.isFinite(record?.acceptedAttempts ?? record?.accepted_attempts)
+      ? (record?.acceptedAttempts ?? record?.accepted_attempts)
+      : 0,
+    updatedAt: String(record?.updatedAt || record?.updated_at || ''),
   }
 }
 
-function readJson(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || {}
-  } catch {
-    return {}
+// ── Convert the backend's flat record shape to our frontend shape ──────────────
+
+function fromAPIRecord(apiRecord) {
+  return normalizeRecord({
+    status: apiRecord.status,
+    draft: apiRecord.draft,
+    lastCheckedSentence: apiRecord.last_checked_sentence,
+    feedback: {
+      isAcceptable: apiRecord.feedback_acceptable,
+      grammarFeedback: apiRecord.feedback_grammar,
+      naturalnessFeedback: apiRecord.feedback_naturalness,
+      suggestedRevision: apiRecord.feedback_revision,
+    },
+    attempts: apiRecord.attempts,
+    acceptedAttempts: apiRecord.accepted_attempts,
+    updatedAt: apiRecord.updated_at,
+  })
+}
+
+// ── Convert frontend shape back to the API request body ───────────────────────
+
+function toAPIRecord(record) {
+  const f = normalizeFeedback(record.feedback)
+  return {
+    status: record.status,
+    draft: record.draft,
+    last_checked_sentence: record.lastCheckedSentence,
+    feedback_acceptable: record.feedback?.isAcceptable != null ? Boolean(record.feedback.isAcceptable) : null,
+    feedback_grammar: f.grammarFeedback,
+    feedback_naturalness: f.naturalnessFeedback,
+    feedback_revision: f.suggestedRevision,
+    attempts: record.attempts,
+    accepted_attempts: record.acceptedAttempts,
   }
 }
 
-function buildLegacyRecords(progress, drafts) {
-  const words = new Set([...Object.keys(progress), ...Object.keys(drafts)])
-  return Array.from(words).reduce((records, word) => {
-    records[word] = normalizeRecord({
-      status: progress[word] || (drafts[word] ? 'learning' : 'new'),
-      draft: drafts[word] || '',
-    })
-    return records
-  }, {})
-}
-
-function mergeRecordMaps(primary, secondary) {
-  const words = new Set([...Object.keys(primary), ...Object.keys(secondary)])
-  return Array.from(words).reduce((records, word) => {
-    records[word] = normalizeRecord({
-      ...secondary[word],
-      ...primary[word],
-      feedback: {
-        ...(secondary[word]?.feedback || {}),
-        ...(primary[word]?.feedback || {}),
-      },
-    })
-    return records
-  }, {})
-}
-
-function loadRecords() {
-  const storedRecords = readJson(STORAGE_KEY)
-  const normalizedRecords = Object.fromEntries(
-    Object.entries(storedRecords).map(([word, record]) => [word, normalizeRecord(record)])
-  )
-
-  const legacyProgress = readJson(LEGACY_PROGRESS_KEY)
-  const legacyDrafts = readJson(LEGACY_DRAFTS_KEY)
-  const legacyRecords = buildLegacyRecords(legacyProgress, legacyDrafts)
-
-  return mergeRecordMaps(normalizedRecords, legacyRecords)
-}
-
-function updateRecord(records, word, updater) {
-  const nextRecord = normalizeRecord(updater(normalizeRecord(records[word])))
-  return { ...records, [word]: nextRecord }
-}
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export default function useProgress() {
-  const [records, setRecords] = useState(loadRecords)
+  const [records, setRecords] = useState({})
+  const [syncState, setSyncState] = useState('idle') // 'idle' | 'loading' | 'error'
+  // Track pending upserts to debounce and batch per word
+  const pendingRef = useRef({})
 
+  // Load all records from the backend on mount (only when logged in)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
-  }, [records])
+    if (!getToken()) return
 
-  const setStatus = (word, status) => {
-    setRecords(prev =>
-      updateRecord(prev, word, record => ({
-        ...record,
-        status,
-        updatedAt: new Date().toISOString(),
-      }))
-    )
+    setSyncState('loading')
+    fetchRecords()
+      .then(apiRecords => {
+        // apiRecords is { [word]: flatApiRecord }
+        const normalized = Object.fromEntries(
+          Object.entries(apiRecords).map(([word, r]) => [word, fromAPIRecord(r)])
+        )
+        setRecords(normalized)
+        setSyncState('idle')
+      })
+      .catch(() => {
+        setSyncState('error')
+      })
+  }, [])
+
+  // Debounced API sync for a single word
+  const syncWord = useCallback((word, record) => {
+    if (pendingRef.current[word]) clearTimeout(pendingRef.current[word])
+    pendingRef.current[word] = setTimeout(() => {
+      upsertRecord(word, toAPIRecord(record)).catch(err => {
+        console.error('Failed to sync record for', word, err)
+      })
+    }, 600)
+  }, [])
+
+  function updateRecord(word, updater) {
+    setRecords(prev => {
+      const next = normalizeRecord(updater(normalizeRecord(prev[word])))
+      syncWord(word, next)
+      return { ...prev, [word]: next }
+    })
   }
 
-  const saveDraft = (word, sentence) => {
-    setRecords(prev =>
-      updateRecord(prev, word, record => ({
-        ...record,
-        draft: sentence,
-        status: record.status === 'new' && sentence.trim() ? 'learning' : record.status,
-        updatedAt: new Date().toISOString(),
-      }))
-    )
-  }
+  const setStatus = useCallback((word, status) => {
+    updateRecord(word, record => ({
+      ...record,
+      status,
+      updatedAt: new Date().toISOString(),
+    }))
+  }, [syncWord])
 
-  const saveFeedback = (word, feedback, checkedSentence) => {
-    const normalizedFeedback = normalizeFeedback(feedback)
-    setRecords(prev =>
-      updateRecord(prev, word, record => ({
-        ...record,
-        status: record.status === 'new' ? 'learning' : record.status,
-        lastCheckedSentence: checkedSentence,
-        feedback: normalizedFeedback,
-        attempts: record.attempts + 1,
-        acceptedAttempts: record.acceptedAttempts + (normalizedFeedback.isAcceptable ? 1 : 0),
-        updatedAt: new Date().toISOString(),
-      }))
-    )
-  }
+  const saveDraft = useCallback((word, sentence) => {
+    updateRecord(word, record => ({
+      ...record,
+      draft: sentence,
+      status: record.status === 'new' && sentence.trim() ? 'learning' : record.status,
+      updatedAt: new Date().toISOString(),
+    }))
+  }, [syncWord])
+
+  const saveFeedback = useCallback((word, feedback, checkedSentence) => {
+    const normalized = normalizeFeedback(feedback)
+    updateRecord(word, record => ({
+      ...record,
+      status: record.status === 'new' ? 'learning' : record.status,
+      lastCheckedSentence: checkedSentence,
+      feedback: normalized,
+      attempts: record.attempts + 1,
+      acceptedAttempts: record.acceptedAttempts + (normalized.isAcceptable ? 1 : 0),
+      updatedAt: new Date().toISOString(),
+    }))
+  }, [syncWord])
 
   const progress = useMemo(
     () =>
       Object.fromEntries(
         Object.entries(records)
-          .filter(([, record]) => record.status !== 'new')
-          .map(([word, record]) => [word, record.status])
+          .filter(([, r]) => r.status !== 'new')
+          .map(([word, r]) => [word, r.status])
       ),
     [records]
   )
@@ -134,16 +157,16 @@ export default function useProgress() {
     () =>
       Object.fromEntries(
         Object.entries(records)
-          .filter(([, record]) => record.draft)
-          .map(([word, record]) => [word, record.draft])
+          .filter(([, r]) => r.draft)
+          .map(([word, r]) => [word, r.draft])
       ),
     [records]
   )
 
   const masteredCount = useMemo(
-    () => Object.values(records).filter(record => record.status === 'mastered').length,
+    () => Object.values(records).filter(r => r.status === 'mastered').length,
     [records]
   )
 
-  return { records, progress, drafts, setStatus, saveDraft, saveFeedback, masteredCount }
+  return { records, progress, drafts, setStatus, saveDraft, saveFeedback, masteredCount, syncState }
 }

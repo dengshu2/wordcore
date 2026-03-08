@@ -103,11 +103,7 @@ export default function Study() {
       }
     } catch (error) {
       setFeedback(null)
-      setCheckError(
-        error.message === 'Missing VITE_GEMINI_API_KEY'
-          ? 'Set VITE_GEMINI_API_KEY to enable AI sentence checking.'
-          : 'AI feedback is temporarily unavailable. Try again.'
-      )
+      setCheckError('AI feedback is temporarily unavailable. Try again.')
       setRevealed(false)
     } finally {
       setIsChecking(false)

@@ -1,8 +1,18 @@
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import useProgress from './useProgress'
 
-beforeEach(() => localStorage.clear())
+// Mock the API layer — useProgress now calls fetchRecords/upsertRecord
+// instead of reading localStorage directly.
+vi.mock('../services/api', () => ({
+  getToken: vi.fn(() => 'mock-token'),
+  fetchRecords: vi.fn(() => Promise.resolve({})),
+  upsertRecord: vi.fn(() => Promise.resolve({})),
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('useProgress', () => {
   it('returns empty records initially', () => {
@@ -23,19 +33,6 @@ describe('useProgress', () => {
     expect(result.current.records.apple.status).toBe('learning')
   })
 
-  it('persists records to localStorage', () => {
-    const { result } = renderHook(() => useProgress())
-    act(() => result.current.setStatus('apple', 'mastered'))
-    const stored = JSON.parse(localStorage.getItem('wordcore-records'))
-    expect(stored.apple.status).toBe('mastered')
-  })
-
-  it('loads existing records from localStorage on mount', () => {
-    localStorage.setItem('wordcore-records', JSON.stringify({ banana: { status: 'mastered' } }))
-    const { result } = renderHook(() => useProgress())
-    expect(result.current.records.banana.status).toBe('mastered')
-  })
-
   it('counts mastered words correctly', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.setStatus('apple', 'mastered'))
@@ -48,16 +45,6 @@ describe('useProgress', () => {
     const { result } = renderHook(() => useProgress())
     act(() => result.current.saveDraft('apple', 'I ate an apple today.'))
     expect(result.current.records.apple.draft).toBe('I ate an apple today.')
-    expect(JSON.parse(localStorage.getItem('wordcore-records')).apple.draft).toBe('I ate an apple today.')
-  })
-
-  it('loads legacy progress and drafts into records on mount', () => {
-    localStorage.setItem('wordcore-progress', JSON.stringify({ banana: 'mastered' }))
-    localStorage.setItem('wordcore-drafts', JSON.stringify({ apple: 'Saved sentence.' }))
-    const { result } = renderHook(() => useProgress())
-    expect(result.current.records.apple.draft).toBe('Saved sentence.')
-    expect(result.current.records.apple.status).toBe('learning')
-    expect(result.current.records.banana.status).toBe('mastered')
   })
 
   it('stores AI feedback with attempts', () => {
@@ -74,5 +61,17 @@ describe('useProgress', () => {
     expect(result.current.records.apple.feedback.suggestedRevision).toBe('I ate an apple after lunch.')
     expect(result.current.records.apple.attempts).toBe(1)
     expect(result.current.records.apple.acceptedAttempts).toBe(1)
+  })
+
+  it('returns a stable object shape for new words', () => {
+    const { result } = renderHook(() => useProgress())
+    act(() => result.current.setStatus('pear', 'new'))
+    const record = result.current.records.pear
+    expect(record).toMatchObject({
+      status: 'new',
+      draft: '',
+      attempts: 0,
+      acceptedAttempts: 0,
+    })
   })
 })

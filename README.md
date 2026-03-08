@@ -1,66 +1,109 @@
 # WordCore
 
-英语核心词汇练习应用 — 通过写例句真正掌握前 3000 高频词汇。
+A quiet workspace for steady English vocabulary practice.
 
-**核心学习闭环：** 看单词 → 自写例句 → AI 批改反馈 → 积累通过次数 → 标记掌握
+Write one sentence per word. Get lightweight AI feedback. Repeat until it sticks.
 
-## 技术栈
+## What it does
 
-- [Vite 7](https://vitejs.dev/) + [React 19](https://react.dev/)
-- [React Router 7](https://reactrouter.com/)
-- [Tailwind CSS 4](https://tailwindcss.com/)
-- [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/)
-- [@tanstack/react-virtual](https://tanstack.com/virtual) — 词库列表虚拟化
-- 数据存储：`localStorage`（无后端、无账号）
+WordCore is built around one learning loop:
 
-## 快速开始
+1. Read the target word, its definition, and a reference sentence
+2. Write one similar sentence with a small change
+3. Press **Self-check** to get AI feedback on grammar and naturalness
+4. Repeat until the word is genuinely usable
 
-```bash
-npm install
-npm run dev      # 开发服务器 http://localhost:5173
-npm test         # 运行测试
-npm run lint     # ESLint 检查
-npm run build    # 构建生产包
+Progress is saved to your account and syncs across devices.
+
+## Architecture
+
+One container serves everything — frontend and API from the same origin.
+
+```
+wordcore.dengshu.ovh
+       │
+  Docker container
+  ├── React SPA (dist/ → /static)
+  ├── POST /auth/register
+  ├── POST /auth/login
+  ├── GET  /api/records
+  ├── PUT  /api/records/:word
+  └── POST /api/check-sentence (OpenRouter proxy)
+       │
+  PostgreSQL (shared postgres-server)
 ```
 
-## AI 句子校验
+**Stack:**
+- Frontend: React 19 + Vite + Tailwind CSS v4
+- Backend: Go + [Chi](https://github.com/go-chi/chi) router
+- Auth: JWT (7-day tokens) + bcrypt
+- Database: PostgreSQL
+- AI: [OpenRouter](https://openrouter.ai) — `google/gemini-2.5-flash`
 
-学习页的 `Self-check` 会调用 Gemini 做轻量句子反馈。开发前请先配置：
-
-```bash
-cp .env.example .env
-# 编辑 .env，填入你的 GEMINI_API_KEY 和 VITE_GEMINI_API_KEY
-```
-
-- `GEMINI_API_KEY`：离线生成词库脚本使用
-- `VITE_GEMINI_API_KEY`：前端运行时的句子校验使用
-
-> **安全提示**：`VITE_GEMINI_API_KEY` 会被打包进前端 JS，任何人打开 DevTools 都能看到。
-> 建议仅用于个人自部署场景，**不要使用有高额配额或付费绑定的 key**。
-> 免费的 [Google AI Studio](https://aistudio.google.com/app/apikey) key 即可满足个人使用需求。
-
-## 词库数据说明
-
-`src/data/words.json` 包含 3000 个高频英语词汇，每个词条包含：
-- `word` — 单词
-- `pos` — 词性
-- `definition` — 英文释义
-- `example` — 参考例句
-
-词库由 `scripts/generate-words.mjs` 脚本 + Gemini API 离线生成（一次性操作）。
-如需重新生成，请先配置 `.env` 文件：
+## Local Development
 
 ```bash
-cp .env.example .env
-# 编辑 .env，填入你的 GEMINI_API_KEY
-node scripts/generate-words.mjs
+# 1. Copy env template and fill in your keys
+cp .env.example .env.local
+# Set VITE_API_BASE_URL=http://localhost:8080 in .env.local
+
+# 2. Start the backend (requires a local PostgreSQL instance)
+cd api && go run .
+
+# 3. Start the frontend dev server (separate terminal)
+npm install && npm run dev
 ```
 
-## 文档
+## Deployment
 
-- [产品需求文档](./docs/PRD.md)
-- [产品方向 & 重构计划](./docs/2026-03-08-wordcore-rebuild-plan.md)
+The project builds into a single Docker image — frontend + backend.
 
-## License
+```bash
+# Build and start
+docker compose up -d --build
 
-MIT
+# View logs
+docker compose logs -f
+
+# Rebuild after changes
+docker compose up -d --build
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `JWT_SECRET` | ✅ | Random secret for signing JWTs (`openssl rand -hex 32`) |
+| `OPENROUTER_API_KEY` | ✅ | API key from [openrouter.ai](https://openrouter.ai/keys) |
+| `OPENROUTER_MODEL` | — | Model name (default: `google/gemini-2.5-flash`) |
+| `GEMINI_API_KEY` | — | Only needed for the offline word-generation script |
+
+### Database Setup
+
+```sql
+CREATE USER wordcore WITH PASSWORD 'your_password';
+CREATE DATABASE wordcore OWNER wordcore;
+GRANT ALL PRIVILEGES ON DATABASE wordcore TO wordcore;
+```
+
+Tables are created automatically on first startup.
+
+### Nginx Proxy Manager
+
+Add one Proxy Host:
+- **Domain**: `wordcore.yourdomain.com`
+- **Forward Host**: `wordcore`
+- **Forward Port**: `8080`
+- Enable SSL (Let's Encrypt)
+
+## Scripts
+
+```bash
+npm run dev       # Start Vite dev server
+npm run build     # Build frontend for production
+npm test          # Run unit tests
+npm run lint      # Lint frontend code
+```
+
+The offline word generation script (`scripts/generate-words.mjs`) requires `GEMINI_API_KEY` (not `VITE_`).

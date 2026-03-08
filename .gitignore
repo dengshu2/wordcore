@@ -31,3 +31,8 @@ dist-ssr
 # AI assistant working files
 .claude/
 .gemini/
+
+# Go build artifacts
+api/wordcore-api
+api/vendor/
+

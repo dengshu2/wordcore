@@ -1,0 +1,32 @@
+services:
+  wordcore:
+    build:
+      context: .         # project root — gives Dockerfile access to both src/ and api/
+      dockerfile: api/Dockerfile
+    container_name: wordcore
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7081:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      - PORT=8080
+      - STATIC_DIR=/app/static
+      - TZ=Asia/Shanghai
+    networks:
+      - npm-network
+      - db-sync-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+networks:
+  npm-network:
+    external: true
+  db-sync-net:
+    external: true

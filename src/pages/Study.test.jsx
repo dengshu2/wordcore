@@ -187,13 +187,13 @@ describe('Study', () => {
     expect(mockSaveDraft).toHaveBeenLastCalledWith(shown.word, `The word ${shown.word} is in this sentence.`)
   })
 
-  it('shows an AI configuration error when the key is missing', async () => {
-    vi.mocked(checkSentence).mockRejectedValueOnce(new Error('Missing VITE_GEMINI_API_KEY'))
+  it('shows an AI error when the check fails', async () => {
+    vi.mocked(checkSentence).mockRejectedValueOnce(new Error('Network error'))
     renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    expect(await screen.findByText(/set vite_gemini_api_key to enable ai sentence checking/i)).toBeInTheDocument()
+    expect(await screen.findByText(/ai feedback is temporarily unavailable/i)).toBeInTheDocument()
   })
 
   it('keeps Mastered disabled until enough acceptable checks are recorded', async () => {

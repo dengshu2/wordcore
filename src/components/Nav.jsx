@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import useProgress from '../hooks/useProgress'
 import { WORD_BANK_SIZE } from '../data/wordBankMeta'
 
@@ -10,6 +11,13 @@ const links = [
 
 export default function Nav() {
   const { masteredCount } = useProgress()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
   const total = WORD_BANK_SIZE
   const remaining = total - masteredCount
 
@@ -33,8 +41,7 @@ export default function Nav() {
                 to={to}
                 end={to === '/'}
                 className={({ isActive }) =>
-                  `flex items-center justify-between rounded-2xl border px-4 py-3 transition ${
-                    isActive ? 'shadow-sm' : ''
+                  `flex items-center justify-between rounded-2xl border px-4 py-3 transition ${isActive ? 'shadow-sm' : ''
                   }`
                 }
                 style={({ isActive }) => ({
@@ -73,6 +80,17 @@ export default function Nav() {
             {remaining} words still in rotation.
           </div>
         </div>
+
+        <div className="mt-4 border-t pt-4" style={{ borderColor: 'var(--wc-border)' }}>
+          <div className="truncate text-xs" style={{ color: 'var(--wc-muted)' }}>{user?.email}</div>
+          <button
+            onClick={handleLogout}
+            className="mt-2 text-xs font-medium underline-offset-2 hover:underline"
+            style={{ color: 'var(--wc-muted)' }}
+          >
+            Sign out
+          </button>
+        </div>
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t px-3 py-2 lg:hidden" style={{ background: 'rgba(255, 250, 241, 0.95)', borderColor: 'var(--wc-border)', backdropFilter: 'blur(18px)' }}>
@@ -82,8 +100,7 @@ export default function Nav() {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center rounded-2xl px-2 py-2 text-xs transition ${
-                isActive ? 'font-semibold' : ''
+              `flex flex-1 flex-col items-center rounded-2xl px-2 py-2 text-xs transition ${isActive ? 'font-semibold' : ''
               }`
             }
             style={({ isActive }) => ({
