@@ -14,32 +14,71 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"golang.org/x/time/rate"
 )
 
 // spaHandler serves a Single Page Application.
 // It returns the requested file if it exists; otherwise it returns index.html
 // so that client-side routing (React Router) works correctly.
+//
+// Cache-Control strategy:
+//   - Vite hashed assets (e.g. index-BZbSmBmg.js): max-age=31536000, immutable
+//   - Other static files (favicon, etc.):           max-age=86400
+//   - SPA fallback (index.html):                    no-cache
 func spaHandler(staticDir string) http.Handler {
 	fs := http.Dir(staticDir)
 	fileServer := http.FileServer(fs)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Strip the trailing slash for file lookups (but keep "/" working).
 		path := filepath.Clean(r.URL.Path)
-		// If the request has a dot, it's likely a real asset — try to serve it directly.
-		// If not found, fall through to index.html.
-		if strings.Contains(filepath.Base(path), ".") {
+		base := filepath.Base(path)
+
+		if strings.Contains(base, ".") {
 			f, err := fs.Open(path)
 			if err == nil {
 				f.Close()
+				// Vite fingerprinted assets have a dash-separated hash before the
+				// extension (e.g. "index-BZbSmBmg.js"). Detect via the pattern
+				// name-HASH.ext where HASH is 8 hex-ish chars.
+				if isHashedAsset(base) {
+					w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+				} else {
+					w.Header().Set("Cache-Control", "public, max-age=86400")
+				}
 				fileServer.ServeHTTP(w, r)
 				return
 			}
 		}
 		// For any route without a file extension (e.g. /study, /words),
 		// serve index.html and let React Router handle it.
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		r.URL.Path = "/"
 		fileServer.ServeHTTP(w, r)
 	})
+}
+
+// isHashedAsset reports whether the filename follows the Vite fingerprint pattern:
+// basename-XXXXXXXX.ext  (8+ alphanumeric characters between the last dash and the dot).
+func isHashedAsset(name string) bool {
+	ext := filepath.Ext(name)
+	if ext == "" {
+		return false
+	}
+	stem := name[:len(name)-len(ext)] // strip extension
+	dashIdx := strings.LastIndex(stem, "-")
+	if dashIdx < 0 {
+		return false
+	}
+	hash := stem[dashIdx+1:]
+	if len(hash) < 8 {
+		return false
+	}
+	for _, c := range hash {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') {
+			return false
+		}
+	}
+	return true
 }
 
 func main() {
@@ -118,7 +157,9 @@ func main() {
 		r.Get("/api/records", h.handleGetRecords)
 		r.Get("/api/records/export", h.handleExportCSV) // must be before /{word}
 		r.Put("/api/records/{word}", h.handleUpsertRecord)
-		r.Post("/api/check-sentence", h.handleCheckSentence)
+
+		// AI sentence check — rate-limited per user (≈10 req/min, burst of 3)
+		r.With(aiRateLimiter(rate.Limit(10.0/60.0), 3)).Post("/api/check-sentence", h.handleCheckSentence)
 	})
 
 	// SPA fallback — serve React app for all other routes.

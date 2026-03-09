@@ -493,7 +493,9 @@ svg {
   height: 100%;
   border-radius: var(--r-pill);
   background: linear-gradient(90deg, var(--wc-accent) 0%, #5aab84 100%);
-  transition: width 600ms ease;
+  /* Use transform instead of width for GPU-accelerated 60fps animation */
+  transform-origin: left center;
+  transition: transform 600ms ease;
 }
 
 /* ─── App shell ──────────────────────────────────────────────────────────── */
@@ -1167,29 +1169,11 @@ svg {
   opacity: 0.6;
 }
 
-/* ─── Page wrapper ───────────────────────────────────────────────────────── */
-.page {
-  padding: var(--space-5);
-}
-
-@media (min-width: 1024px) {
-  .page {
-    padding: var(--space-8) var(--space-10);
-  }
-}
-
 /* ─── Page header ────────────────────────────────────────────────────────── */
 .page-header {
   padding-bottom: var(--space-5);
   border-bottom: 1px solid var(--wc-border);
   margin-bottom: var(--space-5);
-}
-
-/* ─── Divider ────────────────────────────────────────────────────────────── */
-.divider {
-  height: 1px;
-  background: var(--wc-border);
-  margin: var(--space-5) 0;
 }
 
 /* ─── Inline notice / feedback panel ────────────────────────────────────── */
@@ -1218,25 +1202,4 @@ svg {
   background: var(--wc-error-bg);
   border-color: rgba(154, 90, 31, 0.16);
   color: var(--wc-error);
-}
-
-/* ─── Skeleton loader ────────────────────────────────────────────────────── */
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-
-  100% {
-    background-position: 400px 0;
-  }
-}
-
-.skeleton {
-  border-radius: var(--r-md);
-  background: linear-gradient(90deg,
-      rgba(69, 44, 27, 0.06) 25%,
-      rgba(69, 44, 27, 0.10) 50%,
-      rgba(69, 44, 27, 0.06) 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.6s infinite linear;
 }

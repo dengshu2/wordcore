@@ -23,6 +23,7 @@ func (h *handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		// Distinguish user-facing validation errors from internal failures.
 		switch {
 		case errors.Is(err, ErrEmailRequired),
+			errors.Is(err, ErrEmailInvalid),
 			errors.Is(err, ErrPasswordTooShort),
 			errors.Is(err, ErrPasswordTooLong),
 			errors.Is(err, ErrEmailTaken):

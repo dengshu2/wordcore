@@ -26,7 +26,7 @@ function getRequestedWord(wordList, requestedWord) {
 }
 
 export default function Study() {
-  const { records, setStatus, saveDraft, saveFeedback } = useProgressContext()
+  const { records, setStatus, saveDraft, saveFeedback, syncState } = useProgressContext()
   const [searchParams] = useSearchParams()
   const requestedWord = searchParams.get('word')
   const initialWord = getRequestedWord(words, requestedWord)
@@ -73,11 +73,31 @@ export default function Study() {
     setSessionAcceptedSentences(new Set())
   }, [requestedWord, current?.word, records])
 
-  function advance(nextRecords) {
-    const next = getNextWord(words, nextRecords, recentWords, current.word)
+  // While the initial fetch is in flight show skeleton placeholders — all
+  // hooks above must run unconditionally before this early return.
+  if (syncState === 'loading') {
+    return (
+      <div className="study-layout">
+        <div className="skeleton" style={{ height: 56, width: '40%' }} />
+        <div className="skeleton" style={{ height: 20, width: '80%' }} />
+        <div className="skeleton" style={{ height: 20, width: '60%' }} />
+        <div className="skeleton" style={{ height: 160, marginTop: 'var(--space-4)' }} />
+      </div>
+    )
+  }
+
+  function advance(currentWord, newStatus) {
+    // Build a lightweight view of records with the just-applied status override
+    // so getNextWord can immediately see the new status without waiting for the
+    // async setRecords update to propagate.
+    const recordsWithOverride = {
+      ...records,
+      [currentWord]: { ...(records[currentWord] || {}), status: newStatus },
+    }
+    const next = getNextWord(words, recordsWithOverride, recentWords, currentWord)
     setCurrent(next)
     setRecentWords(prev => (next ? [...prev, next.word] : prev))
-    setSentence(next ? nextRecords[next.word]?.draft || '' : '')
+    setSentence(next ? records[next.word]?.draft || '' : '')
     setRevealed(false)
     setFeedback(null)
     setCheckError('')
@@ -103,9 +123,14 @@ export default function Study() {
       if (result.is_acceptable) {
         setSessionAcceptedSentences(prev => new Set([...prev, sentence.trim()]))
       }
-    } catch {
+    } catch (err) {
       setFeedback(null)
-      setCheckError('AI feedback is temporarily unavailable. Try again.')
+      const msg = err?.message || ''
+      if (msg.toLowerCase().includes('too many requests')) {
+        setCheckError('You are checking too quickly. Please wait a moment before trying again.')
+      } else {
+        setCheckError('AI feedback is temporarily unavailable. Try again.')
+      }
       setRevealed(false)
     } finally {
       setIsChecking(false)
@@ -120,15 +145,13 @@ export default function Study() {
   }
 
   function handleAgain() {
-    const nextRecords = { ...records, [current.word]: { ...(records[current.word] || {}), status: 'learning' } }
     setStatus(current.word, 'learning')
-    advance(nextRecords)
+    advance(current.word, 'learning')
   }
 
   function handleMastered() {
-    const nextRecords = { ...records, [current.word]: { ...(records[current.word] || {}), status: 'mastered' } }
     setStatus(current.word, 'mastered')
-    advance(nextRecords)
+    advance(current.word, 'mastered')
   }
 
   if (!current) {

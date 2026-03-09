@@ -26,27 +26,50 @@ export default function Login() {
     const displayError = localError || error
 
     return (
-        <div className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--wc-bg)' }}>
-            <div
-                className="w-full max-w-sm rounded-[32px] border p-8"
-                style={{ background: 'var(--wc-surface)', borderColor: 'var(--wc-border)', boxShadow: 'var(--wc-shadow)' }}
-            >
+        <div style={{
+            display: 'flex',
+            minHeight: '100dvh',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 'var(--space-4)',
+            background: 'var(--wc-bg)',
+        }}>
+            <div style={{
+                width: '100%',
+                maxWidth: '360px',
+                background: 'var(--wc-surface)',
+                border: '1px solid var(--wc-border)',
+                borderRadius: 'var(--r-xl)',
+                boxShadow: 'var(--wc-shadow)',
+                padding: 'var(--space-8)',
+            }}>
                 {/* Wordmark */}
-                <div className="mb-8 text-center">
-                    <div className="text-2xl font-semibold tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+                <div style={{ marginBottom: 'var(--space-8)', textAlign: 'center' }}>
+                    <div style={{
+                        fontFamily: 'var(--font-ui)',
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                        color: 'var(--wc-text)',
+                    }}>
                         WordCore
                     </div>
-                    <div className="mt-1 text-sm" style={{ color: 'var(--wc-muted)' }}>
+                    <div style={{
+                        marginTop: 'var(--space-1)',
+                        fontFamily: 'var(--font-ui)',
+                        fontSize: '0.875rem',
+                        color: 'var(--wc-muted)',
+                    }}>
                         {mode === 'login' ? 'Welcome back.' : 'Create your account.'}
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                     <div>
                         <label
                             htmlFor="login-email"
-                            className="block text-xs font-medium uppercase tracking-[0.2em] mb-2"
-                            style={{ color: 'var(--wc-muted)' }}
+                            className="label"
+                            style={{ display: 'block', marginBottom: 'var(--space-2)' }}
                         >
                             Email
                         </label>
@@ -56,12 +79,7 @@ export default function Login() {
                             autoComplete="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            className="w-full rounded-2xl border px-4 py-3 text-sm outline-none transition"
-                            style={{
-                                borderColor: 'rgba(69, 44, 27, 0.16)',
-                                background: 'rgba(255,250,241,0.92)',
-                                color: 'var(--wc-text)',
-                            }}
+                            className="input"
                             placeholder="you@example.com"
                             required
                         />
@@ -70,8 +88,8 @@ export default function Login() {
                     <div>
                         <label
                             htmlFor="login-password"
-                            className="block text-xs font-medium uppercase tracking-[0.2em] mb-2"
-                            style={{ color: 'var(--wc-muted)' }}
+                            className="label"
+                            style={{ display: 'block', marginBottom: 'var(--space-2)' }}
                         >
                             Password
                         </label>
@@ -81,23 +99,14 @@ export default function Login() {
                             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full rounded-2xl border px-4 py-3 text-sm outline-none transition"
-                            style={{
-                                borderColor: 'rgba(69, 44, 27, 0.16)',
-                                background: 'rgba(255,250,241,0.92)',
-                                color: 'var(--wc-text)',
-                            }}
+                            className="input"
                             placeholder="8+ characters"
                             required
                         />
                     </div>
 
                     {displayError && (
-                        <div
-                            className="rounded-2xl px-4 py-3 text-sm leading-6"
-                            style={{ background: 'rgba(154, 90, 31, 0.08)', color: '#9a5a1f' }}
-                            role="alert"
-                        >
+                        <div className="notice notice--warn" role="alert">
                             {displayError}
                         </div>
                     )}
@@ -106,18 +115,33 @@ export default function Login() {
                         id="login-submit"
                         type="submit"
                         disabled={loading}
-                        className="w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
-                        style={{ background: 'linear-gradient(135deg, var(--wc-accent) 0%, #2d7e65 100%)' }}
+                        className="btn btn--primary"
+                        style={{ width: '100%' }}
                     >
                         {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm" style={{ color: 'var(--wc-muted)' }}>
+                <div style={{
+                    marginTop: 'var(--space-6)',
+                    textAlign: 'center',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: '0.875rem',
+                    color: 'var(--wc-muted)',
+                }}>
                     {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
                     <button
-                        className="font-medium underline-offset-2 hover:underline"
-                        style={{ color: 'var(--wc-accent)' }}
+                        style={{
+                            fontWeight: 600,
+                            color: 'var(--wc-accent)',
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '2px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--font-ui)',
+                            fontSize: 'inherit',
+                        }}
                         onClick={() => {
                             setMode(mode === 'login' ? 'register' : 'login')
                             setLocalError('')

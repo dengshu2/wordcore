@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ const (
 // Sentinel errors for user-facing auth failures.
 var (
 	ErrEmailRequired    = errors.New("email is required")
+	ErrEmailInvalid     = errors.New("email address is not valid")
 	ErrPasswordTooShort = errors.New("password must be at least 8 characters")
 	ErrPasswordTooLong  = errors.New("password is too long (maximum 128 characters)")
 	ErrEmailTaken       = errors.New("email already registered")
@@ -50,6 +52,10 @@ func (a *AuthService) Register(email, password string) (User, string, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" {
 		return User{}, "", ErrEmailRequired
+	}
+	// net/mail.ParseAddress validates RFC 5322 format (e.g. rejects "notanemail").
+	if _, err := mail.ParseAddress(email); err != nil {
+		return User{}, "", ErrEmailInvalid
 	}
 	if len(password) < 8 {
 		return User{}, "", ErrPasswordTooShort

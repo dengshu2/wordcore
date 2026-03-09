@@ -7,9 +7,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
+
+// jsonFenceRe matches an optional ```json / ``` code fence and captures the inner content.
+// The (?s) flag makes . match newlines so multi-line JSON blocks are captured correctly.
+var jsonFenceRe = regexp.MustCompile(`(?s)` + "```" + `(?:json)?\s*([\s\S]*?)\s*` + "```")
 
 const sentenceCheckSystemPrompt = `You are checking a learner's English sentence for a vocabulary imitation exercise.
 
@@ -131,12 +136,13 @@ func (c *OpenRouterClient) CheckSentence(ctx context.Context, word, definition, 
 		return SentenceCheckResult{}, fmt.Errorf("openrouter returned empty choices")
 	}
 
-	// Strip possible markdown code fences from the model output.
+	// Extract JSON from the model output.
+	// Try to find a ```json ... ``` or ``` ... ``` block first (handles extra prose around it).
+	// Fall back to treating the whole trimmed response as JSON.
 	raw := strings.TrimSpace(orResp.Choices[0].Message.Content)
-	raw = strings.TrimPrefix(raw, "```json")
-	raw = strings.TrimPrefix(raw, "```")
-	raw = strings.TrimSuffix(raw, "```")
-	raw = strings.TrimSpace(raw)
+	if m := jsonFenceRe.FindStringSubmatch(raw); len(m) == 2 {
+		raw = strings.TrimSpace(m[1])
+	}
 
 	var result SentenceCheckResult
 	if err := json.Unmarshal([]byte(raw), &result); err != nil {

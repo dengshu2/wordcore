@@ -11,7 +11,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@tanstack/react-virtual": "^3.13.21",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
