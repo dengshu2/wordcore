@@ -11,7 +11,8 @@ const SORTS = [
   { key: 'recent', label: 'Recently updated' },
   { key: 'alpha', label: 'A-Z' },
 ]
-const ROW_HEIGHT = 176
+
+const ROW_HEIGHT = 88
 
 function isWeakRecord(record = {}) {
   return record.status === 'learning' && record.attempts > 0 && !record.feedback?.isAcceptable
@@ -24,29 +25,17 @@ function getStatusLabel(record = {}) {
 }
 
 function getFeedbackSummary(record = {}) {
-  if (record.feedback?.isAcceptable) {
-    return 'Latest check: acceptable'
-  }
-  if (record.feedback?.grammarFeedback) {
-    return `Latest check: ${record.feedback.grammarFeedback}`
-  }
-  if (record.feedback?.naturalnessFeedback) {
-    return `Latest check: ${record.feedback.naturalnessFeedback}`
-  }
-  return 'No AI feedback yet'
+  if (record.feedback?.isAcceptable) return 'Latest check: acceptable'
+  if (record.feedback?.grammarFeedback) return `Latest check: ${record.feedback.grammarFeedback}`
+  if (record.feedback?.naturalnessFeedback) return `Latest check: ${record.feedback.naturalnessFeedback}`
+  return null
 }
 
 function getUpdatedLabel(updatedAt) {
-  if (!updatedAt) return 'Not checked yet'
-
+  if (!updatedAt) return null
   const date = new Date(updatedAt)
-  if (Number.isNaN(date.getTime())) return 'Not checked yet'
-
-  return date.toLocaleDateString('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 function getPriorityScore(record = {}) {
@@ -59,29 +48,22 @@ function getPriorityScore(record = {}) {
 }
 
 function getUpdatedTimestamp(record = {}) {
-  const timestamp = new Date(record.updatedAt || 0).getTime()
-  return Number.isNaN(timestamp) ? 0 : timestamp
+  const ts = new Date(record.updatedAt || 0).getTime()
+  return Number.isNaN(ts) ? 0 : ts
 }
 
 function compareBySort(left, right, records, sortKey) {
-  const leftRecord = records[left.word] || {}
-  const rightRecord = records[right.word] || {}
-
+  const l = records[left.word] || {}
+  const r = records[right.word] || {}
   if (sortKey === 'recent') {
-    const updatedDelta = getUpdatedTimestamp(rightRecord) - getUpdatedTimestamp(leftRecord)
-    if (updatedDelta !== 0) return updatedDelta
+    const d = getUpdatedTimestamp(r) - getUpdatedTimestamp(l)
+    if (d !== 0) return d
   }
-
-  if (sortKey === 'alpha') {
-    return left.word.localeCompare(right.word)
-  }
-
-  const priorityDelta = getPriorityScore(leftRecord) - getPriorityScore(rightRecord)
-  if (priorityDelta !== 0) return priorityDelta
-
-  const updatedDelta = getUpdatedTimestamp(rightRecord) - getUpdatedTimestamp(leftRecord)
-  if (updatedDelta !== 0) return updatedDelta
-
+  if (sortKey === 'alpha') return left.word.localeCompare(right.word)
+  const pd = getPriorityScore(l) - getPriorityScore(r)
+  if (pd !== 0) return pd
+  const rd = getUpdatedTimestamp(r) - getUpdatedTimestamp(l)
+  if (rd !== 0) return rd
   return left.word.localeCompare(right.word)
 }
 
@@ -91,12 +73,11 @@ export default function WordList() {
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('weak')
   const parentRef = useRef(null)
-  const writtenCount = Object.values(records).filter(record => record.draft?.trim()).length
 
-  useEffect(() => { document.title = 'WordCore — Word bank' }, [])
+  useEffect(() => { document.title = 'WordCore — Words' }, [])
 
-  const filtered = useMemo(() => {
-    return words
+  const filtered = useMemo(() =>
+    words
       .filter(w => {
         const matchesQuery = w.word.toLowerCase().includes(query.toLowerCase())
         const record = records[w.word] || {}
@@ -109,10 +90,8 @@ export default function WordList() {
           (filter === 'Weak' && isWeakRecord(record))
         return matchesQuery && matchesFilter
       })
-      .sort((left, right) => compareBySort(left, right, records, sort))
-  }, [query, filter, records, sort])
-
-  const weakCount = Object.values(records).filter(record => isWeakRecord(record)).length
+      .sort((a, b) => compareBySort(a, b, records, sort))
+    , [query, filter, records, sort])
 
   function handleExportCsv() {
     const csv = buildWordCsv(filtered, records)
@@ -132,178 +111,121 @@ export default function WordList() {
     overscan: 10,
   })
 
+  const weakCount = Object.values(records).filter(r => isWeakRecord(r)).length
+
   return (
-    <div className="flex min-h-full flex-col px-6 py-8 lg:px-10 lg:py-10">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.28em]" style={{ color: 'var(--wc-warm)' }}>
-            Word bank
-          </div>
-          <h1 className="mt-3 text-3xl font-semibold lg:text-5xl">Scan the full set without losing your place.</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 lg:text-base" style={{ color: 'var(--wc-muted)' }}>
-            Search, filter, and keep a stable sense of where you are. The list stays lightweight on large screens but still works as a mobile-first view.
-          </p>
+    <div className="words-shell">
+
+      {/* ── Toolbar ──────────────────────────────────────────────────── */}
+      <div className="words-toolbar">
+        {/* Stats line */}
+        <p className="words-stats-line">
+          {masteredCount} mastered · {filtered.length} shown
+          {weakCount > 0 && <span className="words-stats-line__weak"> · {weakCount} weak</span>}
+        </p>
+
+        {/* Search + Export */}
+        <div className="words-search-row">
+          <input
+            type="search"
+            id="word-search"
+            className="input"
+            placeholder="Search words…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+          <button className="btn btn--outline btn--sm" onClick={handleExportCsv}>
+            Export CSV
+          </button>
         </div>
 
-        <div className="grid w-full max-w-[620px] grid-cols-4 gap-3 xl:flex-none">
-          <div className="min-w-0 rounded-[22px] border px-4 py-3" style={{ borderColor: 'var(--wc-border)', background: 'rgba(255,255,255,0.54)' }}>
-            <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Total</div>
-            <div className="mt-2 text-2xl font-semibold">{words.length}</div>
-          </div>
-          <div className="min-w-0 rounded-[22px] border px-4 py-3" style={{ borderColor: 'var(--wc-border)', background: 'rgba(255,255,255,0.54)' }}>
-            <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Mastered</div>
-            <div className="mt-2 text-2xl font-semibold">{masteredCount}</div>
-          </div>
-          <div className="min-w-0 rounded-[22px] border px-4 py-3" style={{ borderColor: 'var(--wc-border)', background: 'rgba(255,255,255,0.54)' }}>
-            <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Shown</div>
-            <div className="mt-2 text-2xl font-semibold">{filtered.length}</div>
-          </div>
-          <div className="min-w-0 rounded-[22px] border px-4 py-3" style={{ borderColor: 'var(--wc-border)', background: 'rgba(255,255,255,0.54)' }}>
-            <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Written</div>
-            <div className="mt-2 text-2xl font-semibold">{writtenCount}</div>
-          </div>
-        </div>
-        <div className="rounded-[22px] border px-4 py-3 xl:w-[150px]" style={{ borderColor: 'rgba(154, 90, 31, 0.14)', background: 'rgba(199, 124, 67, 0.08)' }}>
-          <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--wc-muted)' }}>Weak</div>
-          <div className="mt-2 text-2xl font-semibold">{weakCount}</div>
+        {/* Filters */}
+        <div className="words-chips-row">
+          {FILTERS.map(f => (
+            <button
+              key={f}
+              className={`chip${filter === f ? ' chip--active-green' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f}
+            </button>
+          ))}
+          <span className="words-chips-sep" aria-hidden="true" />
+          {SORTS.map(option => (
+            <button
+              key={option.key}
+              className={`chip${sort === option.key ? ' chip--active-warm' : ''}`}
+              onClick={() => setSort(option.key)}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="mt-8 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border" style={{ background: 'rgba(255,255,255,0.62)', borderColor: 'var(--wc-border)' }}>
-        <div className="border-b px-5 py-5 lg:px-6" style={{ borderColor: 'var(--wc-border)', background: 'rgba(255,250,241,0.86)' }}>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex w-full flex-col gap-4 lg:max-w-3xl">
-              <input
-                type="search"
-                className="w-full rounded-[18px] border px-4 py-3 text-base outline-none"
-                style={{ borderColor: 'rgba(69, 44, 27, 0.12)', background: '#fffdf8' }}
-                placeholder="Search words..."
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-              />
-              <div className="flex flex-wrap gap-2">
-                {FILTERS.map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className="rounded-full px-4 py-2 text-sm font-medium transition"
-                    style={{
-                      background: filter === f ? 'var(--wc-accent)' : 'rgba(31, 106, 82, 0.08)',
-                      color: filter === f ? '#fff' : 'var(--wc-muted)',
-                    }}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="text-xs uppercase tracking-[0.22em]" style={{ color: 'var(--wc-muted)' }}>
-                  Sort
-                </div>
-                {SORTS.map(option => (
-                  <button
-                    key={option.key}
-                    onClick={() => setSort(option.key)}
-                    className="rounded-full px-4 py-2 text-sm font-medium transition"
-                    style={{
-                      background: sort === option.key ? 'rgba(199, 124, 67, 0.92)' : 'rgba(199, 124, 67, 0.08)',
-                      color: sort === option.key ? '#fff' : '#8a5a33',
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-start lg:justify-end">
-              <button
-                onClick={handleExportCsv}
-                className="rounded-2xl px-5 py-3 text-sm font-semibold text-white"
-                style={{ background: 'linear-gradient(135deg, var(--wc-accent) 0%, #2d7e65 100%)' }}
-              >
-                Export CSV
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* ── List ─────────────────────────────────────────────────────── */}
+      <div ref={parentRef} className="words-list">
+        {filtered.length === 0 ? (
+          <div className="words-empty">No words match.</div>
+        ) : (
+          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+            {virtualizer.getVirtualItems().map(virtualItem => {
+              const w = filtered[virtualItem.index]
+              const record = records[w.word] || {}
+              const isMastered = record.status === 'mastered'
+              const isWeak = isWeakRecord(record)
+              const mySentence = record.draft?.trim()
+              const statusLabel = getStatusLabel(record)
+              const feedbackSummary = getFeedbackSummary(record)
+              const updatedLabel = getUpdatedLabel(record.updatedAt)
+              const attemptsLabel = `${record.attempts || 0}/${record.acceptedAttempts || 0}`
 
-        <div className="grid grid-cols-[minmax(0,1fr)_140px] border-b px-6 py-3 text-xs uppercase tracking-[0.22em]" style={{ color: 'var(--wc-muted)', borderColor: 'var(--wc-border)' }}>
-          <div>Word and learning record</div>
-          <div className="text-right">Status</div>
-        </div>
-
-        <div ref={parentRef} className="min-h-0 flex-1 overflow-auto">
-          {filtered.length === 0 ? (
-            <div className="py-20 text-center text-sm" style={{ color: 'var(--wc-muted)' }}>No words found</div>
-          ) : (
-            <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
-              {virtualizer.getVirtualItems().map(virtualItem => {
-                const w = filtered[virtualItem.index]
-                const record = records[w.word] || {}
-                const isMastered = record?.status === 'mastered'
-                const mySentence = record?.draft?.trim()
-                const statusLabel = getStatusLabel(record)
-                const feedbackSummary = getFeedbackSummary(record)
-                const attemptsLabel = `${record.attempts || 0}/${record.acceptedAttempts || 0}`
-
-                return (
-                  <div
-                    key={w.word}
-                    style={{
-                      position: 'absolute',
-                      top: `${virtualItem.start}px`,
-                      left: 0,
-                      right: 0,
-                      height: `${ROW_HEIGHT}px`,
-                    }}
-                    className="grid grid-cols-[minmax(0,1fr)_140px] gap-4 border-b px-6 py-4"
-                    aria-label={w.word}
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-semibold">{w.word}</span>
-                        <span className="text-sm" style={{ color: 'var(--wc-muted)' }}>{w.pos}</span>
-                        <Link
-                          to={`/study?word=${encodeURIComponent(w.word)}`}
-                          className="rounded-full px-3 py-1 text-xs font-medium"
-                          style={{ background: 'rgba(31, 106, 82, 0.08)', color: 'var(--wc-accent)' }}
-                        >
-                          Study word
-                        </Link>
-                      </div>
-                      {mySentence ? (
-                        <div className="truncate text-sm" style={{ color: 'var(--wc-text)' }}>
-                          My sentence: {mySentence}
-                        </div>
-                      ) : (
-                        <div className="truncate text-sm italic" style={{ color: 'var(--wc-muted)' }}>
-                          Reference: {w.example}
-                        </div>
-                      )}
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--wc-muted)' }}>
-                        <span>Attempts: {attemptsLabel}</span>
-                        <span>Updated: {getUpdatedLabel(record.updatedAt)}</span>
-                      </div>
-                      <div className="mt-2 truncate text-sm" style={{ color: isWeakRecord(record) ? '#9a5a1f' : 'var(--wc-muted)' }}>
-                        {feedbackSummary}
-                      </div>
+              return (
+                <div
+                  key={w.word}
+                  aria-label={w.word}
+                  className="word-row"
+                  style={{
+                    position: 'absolute',
+                    top: `${virtualItem.start}px`,
+                    left: 0,
+                    right: 0,
+                    height: `${ROW_HEIGHT}px`,
+                  }}
+                >
+                  {/* Left */}
+                  <div className="word-row__left">
+                    <div className="word-row__title">
+                      <span className="word-row__word">{w.word}</span>
+                      <span className="word-row__pos">{w.pos}</span>
+                      <Link to={`/study?word=${encodeURIComponent(w.word)}`} className="badge badge--accent">
+                        Study word
+                      </Link>
                     </div>
-                    <div className="flex flex-col items-end justify-between gap-2 text-right">
-                      <div className="text-sm font-medium" style={{ color: isMastered ? 'var(--wc-accent)' : isWeakRecord(record) ? '#9a5a1f' : 'var(--wc-muted)' }}>
-                        {statusLabel}
-                      </div>
-                      {isWeakRecord(record) && (
-                        <div className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: 'rgba(199, 124, 67, 0.12)', color: '#9a5a1f' }}>
-                          Needs review
-                        </div>
-                      )}
-                    </div>
+
+                    <p className="word-row__sentence">
+                      {mySentence
+                        ? <>My sentence: {mySentence}</>
+                        : <em>{w.example}</em>
+                      }
+                    </p>
+
+                    <p className="word-row__meta">
+                      Attempts: {attemptsLabel}
+                      {updatedLabel && <> · Updated: {updatedLabel}</>}
+                      {feedbackSummary && <> · <span style={{ color: isWeak ? 'var(--wc-error)' : 'inherit' }}>{feedbackSummary}</span></>}
+                    </p>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+
+                  {/* Right: status */}
+                  <div className="word-row__status" style={{ color: isMastered ? 'var(--wc-accent)' : isWeak ? 'var(--wc-error)' : 'var(--wc-muted)' }}>
+                    {statusLabel}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -22,9 +22,8 @@ function renderNav(path = '/') {
 }
 
 describe('Nav', () => {
-  it('renders three navigation links', () => {
+  it('renders two navigation links', () => {
     renderNav()
-    expect(screen.getAllByRole('link', { name: /home/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: /study/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: /words/i }).length).toBeGreaterThan(0)
   })
