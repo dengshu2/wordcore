@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/wordBank'
@@ -13,6 +13,7 @@ const SORTS = [
 ]
 
 const ROW_HEIGHT = 88
+const PAGE_SIZE = 50
 
 function isWeakRecord(record = {}) {
   return record.status === 'learning' && record.attempts > 0 && !record.feedback?.isAcceptable
@@ -72,9 +73,15 @@ export default function WordList() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('weak')
+  const [page, setPage] = useState(1)
   const parentRef = useRef(null)
 
   useEffect(() => { document.title = 'WordCore — Words' }, [])
+
+  // Reset to first page when search/filter/sort changes
+  const setQueryAndReset = useCallback(v => { setQuery(v); setPage(1) }, [])
+  const setFilterAndReset = useCallback(v => { setFilter(v); setPage(1) }, [])
+  const setSortAndReset = useCallback(v => { setSort(v); setPage(1) }, [])
 
   const filtered = useMemo(() =>
     words
@@ -93,6 +100,12 @@ export default function WordList() {
       .sort((a, b) => compareBySort(a, b, records, sort))
     , [query, filter, records, sort])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageStart = (safePage - 1) * PAGE_SIZE
+  const pageEnd = Math.min(pageStart + PAGE_SIZE, filtered.length)
+  const paged = useMemo(() => filtered.slice(pageStart, pageEnd), [filtered, pageStart, pageEnd])
+
   function handleExportCsv() {
     const csv = buildWordCsv(filtered, records)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
@@ -105,13 +118,18 @@ export default function WordList() {
   }
 
   const virtualizer = useVirtualizer({
-    count: filtered.length,
+    count: paged.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 10,
   })
 
   const weakCount = Object.values(records).filter(r => isWeakRecord(r)).length
+
+  function goPage(n) {
+    setPage(n)
+    parentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="words-shell">
@@ -132,7 +150,7 @@ export default function WordList() {
             className="input"
             placeholder="Search words…"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => setQueryAndReset(e.target.value)}
           />
           <button className="btn btn--outline btn--sm" onClick={handleExportCsv}>
             Export CSV
@@ -145,7 +163,7 @@ export default function WordList() {
             <button
               key={f}
               className={`chip${filter === f ? ' chip--active-green' : ''}`}
-              onClick={() => setFilter(f)}
+              onClick={() => setFilterAndReset(f)}
             >
               {f}
             </button>
@@ -155,7 +173,7 @@ export default function WordList() {
             <button
               key={option.key}
               className={`chip${sort === option.key ? ' chip--active-warm' : ''}`}
-              onClick={() => setSort(option.key)}
+              onClick={() => setSortAndReset(option.key)}
             >
               {option.label}
             </button>
@@ -170,7 +188,7 @@ export default function WordList() {
         ) : (
           <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
             {virtualizer.getVirtualItems().map(virtualItem => {
-              const w = filtered[virtualItem.index]
+              const w = paged[virtualItem.index]
               const record = records[w.word] || {}
               const isMastered = record.status === 'mastered'
               const isWeak = isWeakRecord(record)
@@ -227,6 +245,31 @@ export default function WordList() {
           </div>
         )}
       </div>
+
+      {/* ── Pagination ────────────────────────────────────────────────── */}
+      {totalPages > 1 && (
+        <div className="words-pagination">
+          <button
+            className="btn btn--ghost"
+            disabled={safePage <= 1}
+            onClick={() => goPage(safePage - 1)}
+            aria-label="Previous page"
+          >
+            ‹ Prev
+          </button>
+          <span className="words-pagination__info num">
+            {pageStart + 1}–{pageEnd} of {filtered.length}
+          </span>
+          <button
+            className="btn btn--ghost"
+            disabled={safePage >= totalPages}
+            onClick={() => goPage(safePage + 1)}
+            aria-label="Next page"
+          >
+            Next ›
+          </button>
+        </div>
+      )}
     </div>
   )
 }

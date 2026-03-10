@@ -151,24 +151,24 @@ describe('Study', () => {
     expect(mockMarkMastered).toHaveBeenCalledWith(shown.word)
   })
 
-  it('calls setStatus learning when Again is clicked', async () => {
+  it('calls setStatus learning when Next is clicked', async () => {
     renderStudy()
     const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
     await screen.findByText(/suggested:/i)
-    fireEvent.click(screen.getByRole('button', { name: /again/i }))
+    fireEvent.click(screen.getByRole('button', { name: /next/i }))
     expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'learning')
   })
 
-  it('advances to the next word after clicking Again', async () => {
+  it('advances to the next word after clicking Next', async () => {
     renderStudy()
     const first = MOCK_WORDS.find(w => screen.queryByText(w.word))
     const other = MOCK_WORDS.find(w => w.word !== first.word)
     fireEvent.change(getSentenceInput(), { target: { value: `The word ${first.word} is in this sentence.` } })
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
     await screen.findByText(/suggested:/i)
-    fireEvent.click(screen.getByRole('button', { name: /again/i }))
+    fireEvent.click(screen.getByRole('button', { name: /next/i }))
     expect(screen.getByText(other.word)).toBeInTheDocument()
   })
 

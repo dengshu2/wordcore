@@ -302,7 +302,7 @@ function FeedbackPanel({ feedback, acceptedAttempts, requiredAttempts, remaining
       {feedback.is_acceptable && !masteredReady && (
         <p className="study-feedback__note">Complete {remainingAcceptedChecks} more acceptable self-check{remainingAcceptedChecks === 1 ? '' : 's'} before marking this word as mastered.</p>
       )}
-      <ActionRow masteredReady={masteredReady} onAgain={onAgain} onMastered={onMastered} />
+      <ActionRow masteredReady={masteredReady} onAgain={onAgain} onMastered={onMastered} isAcceptable={feedback.is_acceptable} />
     </div>
   )
 }
@@ -319,16 +319,25 @@ function StoredFeedbackPanel({ stored, currentRecord, requiredAttempts, storedMa
         <p className="study-feedback__suggestion">Suggested: {stored.suggestedRevision}</p>
       )}
       <p className="study-feedback__tally num">Accepted checks: {currentRecord.acceptedAttempts || 0}/{requiredAttempts}</p>
-      <ActionRow masteredReady={storedMasteredReady} onAgain={onAgain} onMastered={onMastered} />
+      <ActionRow masteredReady={storedMasteredReady} onAgain={onAgain} onMastered={onMastered} isAcceptable={stored.isAcceptable} />
     </div>
   )
 }
 
-function ActionRow({ masteredReady, onAgain, onMastered }) {
+function ActionRow({ masteredReady, onAgain, onMastered, isAcceptable }) {
   return (
-    <div className="study-action-row">
-      <button className="btn btn--outline flex-1" onClick={onAgain}>Again</button>
-      <button className="btn btn--primary flex-1" onClick={onMastered} disabled={!masteredReady}>Mastered</button>
+    <div>
+      <div className="study-action-row">
+        <button className="btn btn--outline flex-1" onClick={onAgain}>Next</button>
+        <button className="btn btn--primary flex-1" onClick={onMastered} disabled={!masteredReady}>Mastered</button>
+      </div>
+      <p className="study-action-hint">
+        {masteredReady
+          ? 'Mark as mastered, or move to the next word.'
+          : isAcceptable
+            ? 'This word stays in your learning queue.'
+            : 'You can revise your sentence above and re-check, or move on.'}
+      </p>
     </div>
   )
 }
