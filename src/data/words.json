@@ -24,12 +24,6 @@
     "example": "I am going to the store."
   },
   {
-    "word": "a",
-    "pos": "adjective",
-    "definition": "Indefinite article indicating one non-specific item.",
-    "example": "I need a pen."
-  },
-  {
     "word": "in",
     "pos": "preposition",
     "definition": "Located inside, surrounded by, or contained within something.",
@@ -76,12 +70,6 @@
     "pos": "preposition",
     "definition": "Accompanied by, or having something.",
     "example": "I went to the store with my friend."
-  },
-  {
-    "word": "i",
-    "pos": "pronoun",
-    "definition": "The speaker or writer of the sentence.",
-    "example": "I am going to the store."
   },
   {
     "word": "you",
@@ -462,12 +450,6 @@
     "example": "Can you get me a glass of water?"
   },
   {
-    "word": "pm",
-    "pos": "adverb",
-    "definition": "Used after a number to indicate time between noon and midnight.",
-    "example": "Let's meet at 3 pm tomorrow."
-  },
-  {
     "word": "view",
     "pos": "noun",
     "definition": "What can be seen from a particular place.",
@@ -478,18 +460,6 @@
     "pos": "adverb",
     "definition": "While connected to or using a computer network.",
     "example": "I bought it online."
-  },
-  {
-    "word": "c",
-    "pos": "noun",
-    "definition": "The third letter of the English alphabet.",
-    "example": "The word 'cat' starts with the letter c."
-  },
-  {
-    "word": "e",
-    "pos": "noun",
-    "definition": "The fifth letter of the English alphabet.",
-    "example": "The word \"egg\" starts with the letter \"e\"."
   },
   {
     "word": "first",
@@ -534,12 +504,6 @@
     "example": "Can you help me?"
   },
   {
-    "word": "s",
-    "pos": "verb",
-    "definition": "Contraction of the verb 'is' or 'has'.",
-    "example": "It's a lovely day outside."
-  },
-  {
     "word": "services",
     "pos": "noun",
     "definition": "Activities performed for the benefit of others.",
@@ -580,12 +544,6 @@
     "pos": "noun",
     "definition": "Work done for a customer or for the public.",
     "example": "The customer service was excellent."
-  },
-  {
-    "word": "x",
-    "pos": "verb",
-    "definition": "Move quickly on foot.",
-    "example": "I like to run in the park every morning."
   },
   {
     "word": "than",
@@ -702,22 +660,10 @@
     "example": "Good health is important for everyone."
   },
   {
-    "word": "n",
-    "pos": "conjunction",
-    "definition": "A common abbreviation for the conjunction 'and'.",
-    "example": "Let's have some fish 'n' chips."
-  },
-  {
     "word": "world",
     "pos": "noun",
     "definition": "The Earth, its people, and all things.",
     "example": "The world is a very big place."
-  },
-  {
-    "word": "re",
-    "pos": "preposition",
-    "definition": "Concerning; with reference to; regarding.",
-    "example": "I saw your email re: the new schedule."
   },
   {
     "word": "next",
@@ -736,12 +682,6 @@
     "pos": "verb",
     "definition": "To move or travel from one place to another.",
     "example": "Let's go to the store later."
-  },
-  {
-    "word": "b",
-    "pos": "noun",
-    "definition": "The second letter of the English alphabet.",
-    "example": "The word 'book' begins with the letter 'b'."
   },
   {
     "word": "work",
@@ -834,12 +774,6 @@
     "example": "New York is a famous city."
   },
   {
-    "word": "t",
-    "pos": "noun",
-    "definition": "The twentieth letter of the English alphabet.",
-    "example": "Write a capital T."
-  },
-  {
     "word": "add",
     "pos": "verb",
     "definition": "To join something to increase amount or total.",
@@ -918,12 +852,6 @@
     "example": "First, stir the mixture, then add the sugar."
   },
   {
-    "word": "jan",
-    "pos": "noun",
-    "definition": "Short for January.",
-    "example": "My birthday is in Jan."
-  },
-  {
     "word": "good",
     "pos": "adjective",
     "definition": "Having desirable qualities; excellent.",
@@ -940,12 +868,6 @@
     "pos": "adverb",
     "definition": "In a good or satisfactory manner.",
     "example": "He speaks English very well."
-  },
-  {
-    "word": "d",
-    "pos": "noun",
-    "definition": "The fourth letter of the English alphabet.",
-    "example": "The word 'dog' starts with a 'd'."
   },
   {
     "word": "where",
@@ -994,12 +916,6 @@
     "pos": "preposition",
     "definition": "From one side or end to the other.",
     "example": "We drove through the tunnel."
-  },
-  {
-    "word": "m",
-    "pos": "noun",
-    "definition": "The thirteenth letter of the English alphabet.",
-    "example": "M is for monkey."
   },
   {
     "word": "each",
@@ -1068,12 +984,6 @@
     "example": "She works for a large company."
   },
   {
-    "word": "r",
-    "pos": "noun",
-    "definition": "The eighteenth letter of the English alphabet.",
-    "example": "The word 'run' starts with the letter 'r'."
-  },
-  {
     "word": "read",
     "pos": "verb",
     "definition": "To comprehend written or printed words.",
@@ -1108,12 +1018,6 @@
     "pos": "verb",
     "definition": "To have uttered words or expressed an opinion.",
     "example": "She said hello when I walked in."
-  },
-  {
-    "word": "de",
-    "pos": "preposition",
-    "definition": "Meaning \"of\" or \"from\", especially in names or foreign phrases.",
-    "example": "The term 'de facto' means in fact."
   },
   {
     "word": "does",
@@ -1224,12 +1128,6 @@
     "example": "Good management ensures the project runs smoothly."
   },
   {
-    "word": "p",
-    "pos": "noun",
-    "definition": "The sixteenth letter of the English alphabet.",
-    "example": "Write a capital P."
-  },
-  {
     "word": "part",
     "pos": "noun",
     "definition": "A portion or section of a larger whole.",
@@ -1266,12 +1164,6 @@
     "example": "Is that a real diamond?"
   },
   {
-    "word": "f",
-    "pos": "noun",
-    "definition": "The sixth letter of the English alphabet.",
-    "example": "The word 'fox' begins with the letter f."
-  },
-  {
     "word": "item",
     "pos": "noun",
     "definition": "A single article, piece, or unit in a collection.",
@@ -1288,12 +1180,6 @@
     "pos": "noun",
     "definition": "The exact middle point of something.",
     "example": "The table is in the center of the room."
-  },
-  {
-    "word": "ebay",
-    "pos": "noun",
-    "definition": "An online marketplace for buying and selling items.",
-    "example": "I bought a vintage record player on eBay."
   },
   {
     "word": "must",
@@ -1524,12 +1410,6 @@
     "example": "I need to charge my phone tonight."
   },
   {
-    "word": "dvd",
-    "pos": "noun",
-    "definition": "A digital optical disc used for storing video and data.",
-    "example": "Let's watch a DVD tonight."
-  },
-  {
     "word": "shipping",
     "pos": "noun",
     "definition": "The act or business of transporting goods.",
@@ -1566,12 +1446,6 @@
     "example": "My family loves to spend time together."
   },
   {
-    "word": "l",
-    "pos": "noun",
-    "definition": "The twelfth letter of the English alphabet.",
-    "example": "L is for lemon."
-  },
-  {
     "word": "long",
     "pos": "adjective",
     "definition": "Extending a great distance from end to end.",
@@ -1584,12 +1458,6 @@
     "example": "The story is based on true events."
   },
   {
-    "word": "w",
-    "pos": "noun",
-    "definition": "The twenty-third letter of the English alphabet.",
-    "example": "The word 'water' starts with W."
-  },
-  {
     "word": "code",
     "pos": "noun",
     "definition": "A system of rules, symbols, or signals.",
@@ -1600,12 +1468,6 @@
     "pos": "verb",
     "definition": "To make something visible or known.",
     "example": "Can you show me your new phone?"
-  },
-  {
-    "word": "o",
-    "pos": "interjection",
-    "definition": "An exclamation expressing surprise, calling attention, or addressing someone.",
-    "example": "O look, a bird!"
   },
   {
     "word": "even",
@@ -1734,12 +1596,6 @@
     "example": "Please turn to the first few pages."
   },
   {
-    "word": "uk",
-    "pos": "noun",
-    "definition": "Abbreviation for the United Kingdom, a European country.",
-    "example": "She moved from the UK to Canada."
-  },
-  {
     "word": "version",
     "pos": "noun",
     "definition": "A particular form of something, differing from others.",
@@ -1792,12 +1648,6 @@
     "pos": "determiner",
     "definition": "Referring to two people or things together.",
     "example": "Both cats are sleeping."
-  },
-  {
-    "word": "g",
-    "pos": "noun",
-    "definition": "The seventh letter of the English alphabet.",
-    "example": "Gorilla begins with the letter G."
   },
   {
     "word": "county",
@@ -1906,12 +1756,6 @@
     "pos": "verb",
     "definition": "To copy data from a remote to a local system.",
     "example": "Please download the app update now."
-  },
-  {
-    "word": "h",
-    "pos": "noun",
-    "definition": "The eighth letter of the English alphabet.",
-    "example": "The word 'hour' starts with the letter H."
   },
   {
     "word": "him",
@@ -2124,12 +1968,6 @@
     "example": "She sleeps during the day."
   },
   {
-    "word": "usa",
-    "pos": "noun",
-    "definition": "A country in North America.",
-    "example": "She lives in the USA."
-  },
-  {
     "word": "return",
     "pos": "verb",
     "definition": "Go or come back to a place or sender.",
@@ -2140,12 +1978,6 @@
     "pos": "noun",
     "definition": "People studying at a school or university.",
     "example": "The students are learning about history."
-  },
-  {
-    "word": "v",
-    "pos": "noun",
-    "definition": "The 22nd letter of the English alphabet.",
-    "example": "The letter V looks like a check mark."
   },
   {
     "word": "shopping",
@@ -2220,12 +2052,6 @@
     "example": "My grandfather is very old."
   },
   {
-    "word": "john",
-    "pos": "noun",
-    "definition": "A toilet or lavatory.",
-    "example": "I need to use the john."
-  },
-  {
     "word": "main",
     "pos": "adjective",
     "definition": "Most important, principal, or largest.",
@@ -2274,18 +2100,6 @@
     "example": "Please answer yes or non to the question."
   },
   {
-    "word": "k",
-    "pos": "interjection",
-    "definition": "An informal abbreviation for 'okay'.",
-    "example": "\"Are you ready?\" \"K, I'm coming.\""
-  },
-  {
-    "word": "y",
-    "pos": "noun",
-    "definition": "The twenty-fifth letter of the English alphabet.",
-    "example": "Yellow begins with the letter y."
-  },
-  {
     "word": "insurance",
     "pos": "noun",
     "definition": "Protection against financial loss or risk.",
@@ -2320,12 +2134,6 @@
     "pos": "noun",
     "definition": "A group of students taught together or a scheduled lesson.",
     "example": "My first class starts at nine AM."
-  },
-  {
-    "word": "cd",
-    "pos": "noun",
-    "definition": "A digital optical disc storing audio, video, or data.",
-    "example": "I put a music CD in the player."
   },
   {
     "word": "still",
@@ -2460,12 +2268,6 @@
     "example": "I read an interesting article online today."
   },
   {
-    "word": "york",
-    "pos": "noun",
-    "definition": "A historic city in northern England.",
-    "example": "We plan to visit York next spring."
-  },
-  {
     "word": "man",
     "pos": "noun",
     "definition": "An adult human male.",
@@ -2488,12 +2290,6 @@
     "pos": "verb",
     "definition": "To make available or supply something needed.",
     "example": "We provide free breakfast daily."
-  },
-  {
-    "word": "j",
-    "pos": "noun",
-    "definition": "The tenth letter of the English alphabet.",
-    "example": "J is for jump."
   },
   {
     "word": "food",
@@ -2524,12 +2320,6 @@
     "pos": "verb",
     "definition": "To apply force by pushing.",
     "example": "Please press the button to start."
-  },
-  {
-    "word": "u",
-    "pos": "pronoun",
-    "definition": "An informal spelling of the pronoun 'you'.",
-    "example": "See u later!"
   },
   {
     "word": "learn",
@@ -2566,12 +2356,6 @@
     "pos": "noun",
     "definition": "Paid work, especially a regular one.",
     "example": "I need to find a new job."
-  },
-  {
-    "word": "canada",
-    "pos": "noun",
-    "definition": "A large country in North America, north of the United States.",
-    "example": "I want to visit Canada someday."
   },
   {
     "word": "process",
@@ -2886,12 +2670,6 @@
     "example": "Provided you finish work, you can leave early."
   },
   {
-    "word": "tv",
-    "pos": "noun",
-    "definition": "An electronic device for viewing broadcast programs.",
-    "example": "We watch a lot of tv."
-  },
-  {
     "word": "yes",
     "pos": "adverb",
     "definition": "Used to express affirmation or agreement.",
@@ -2946,12 +2724,6 @@
     "example": "My birthday is in March."
   },
   {
-    "word": "la",
-    "pos": "noun",
-    "definition": "The sixth note of the musical scale.",
-    "example": "Can you sing a high la?"
-  },
-  {
     "word": "september",
     "pos": "noun",
     "definition": "The ninth month of the year, following August.",
@@ -2980,12 +2752,6 @@
     "pos": "noun",
     "definition": "The seventh month of the year.",
     "example": "My birthday is in July."
-  },
-  {
-    "word": "yahoo",
-    "pos": "noun",
-    "definition": "A rude, noisy, or uncultured person.",
-    "example": "The yahoos were yelling loudly at the game."
   },
   {
     "word": "going",
@@ -3018,22 +2784,10 @@
     "example": "I will come home soon."
   },
   {
-    "word": "dec",
-    "pos": "noun",
-    "definition": "Abbreviation for December, the twelfth month of the year.",
-    "example": "My birthday is in Dec."
-  },
-  {
     "word": "server",
     "pos": "noun",
     "definition": "A person or computer that provides services.",
     "example": "The server brought our drinks promptly."
-  },
-  {
-    "word": "pc",
-    "pos": "noun",
-    "definition": "A personal computer.",
-    "example": "My new pc runs very fast."
   },
   {
     "word": "study",
@@ -3234,12 +2988,6 @@
     "example": "The gym has new exercise equipment."
   },
   {
-    "word": "login",
-    "pos": "noun",
-    "definition": "The credentials or process to access a computer system.",
-    "example": "I forgot my login for the banking app."
-  },
-  {
     "word": "student",
     "pos": "noun",
     "definition": "A person learning at a school or university.",
@@ -3342,12 +3090,6 @@
     "example": "Humans are naturally social creatures."
   },
   {
-    "word": "q",
-    "pos": "noun",
-    "definition": "The seventeenth letter of the English alphabet.",
-    "example": "The word 'queen' starts with Q."
-  },
-  {
     "word": "august",
     "pos": "adjective",
     "definition": "Dignified and impressive; inspiring respect or admiration.",
@@ -3418,12 +3160,6 @@
     "pos": "adjective",
     "definition": "Being in an early stage of life or development.",
     "example": "The young man helped me carry the bags."
-  },
-  {
-    "word": "america",
-    "pos": "noun",
-    "definition": "A continent or country in the Western Hemisphere.",
-    "example": "My family lives in America."
   },
   {
     "word": "important",
@@ -3510,12 +3246,6 @@
     "example": "Never share your password with anyone."
   },
   {
-    "word": "z",
-    "pos": "noun",
-    "definition": "The 26th and last letter of the English alphabet.",
-    "example": "Z is for zebra."
-  },
-  {
     "word": "latest",
     "pos": "adjective",
     "definition": "Most recent or newest in time.",
@@ -3558,28 +3288,10 @@
     "example": "The stars shine brightly at night."
   },
   {
-    "word": "ca",
-    "pos": "adverb",
-    "definition": "Approximately; about a specific date or time.",
-    "example": "The castle was built ca 1200."
-  },
-  {
     "word": "hard",
     "pos": "adjective",
     "definition": "Difficult to bend, break, or cut; solid.",
     "example": "The rock is very hard."
-  },
-  {
-    "word": "texas",
-    "pos": "noun",
-    "definition": "A large state in the southern United States.",
-    "example": "We are planning a trip to Texas."
-  },
-  {
-    "word": "oct",
-    "pos": "noun",
-    "definition": "Abbreviation for October, the tenth month of the year.",
-    "example": "Oct. 31 is Halloween."
   },
   {
     "word": "pay",
@@ -3684,12 +3396,6 @@
     "example": "The country prepared for war."
   },
   {
-    "word": "nov",
-    "pos": "noun",
-    "definition": "Abbreviation for the month of November.",
-    "example": "My birthday is in Nov."
-  },
-  {
     "word": "offer",
     "pos": "verb",
     "definition": "To present something for acceptance.",
@@ -3706,12 +3412,6 @@
     "pos": "noun",
     "definition": "Collections of people or things.",
     "example": "The children played in small groups."
-  },
-  {
-    "word": "al",
-    "pos": "noun",
-    "definition": "Short for aluminum, a lightweight metallic element.",
-    "example": "Many drink cans are made of al."
   },
   {
     "word": "easy",
@@ -3760,12 +3460,6 @@
     "pos": "noun",
     "definition": "A document sent or received by a fax machine.",
     "example": "I received a fax this morning."
-  },
-  {
-    "word": "china",
-    "pos": "noun",
-    "definition": "Fine porcelain tableware or the material itself.",
-    "example": "Please handle the china cups carefully; they are delicate."
   },
   {
     "word": "making",
@@ -3876,28 +3570,10 @@
     "example": "We need to solve these problems quickly."
   },
   {
-    "word": "london",
-    "pos": "noun",
-    "definition": "The capital city of England and the United Kingdom.",
-    "example": "London is a very famous city."
-  },
-  {
-    "word": "washington",
-    "pos": "noun",
-    "definition": "US capital, a state, or a famous president.",
-    "example": "Washington D.C. is the capital of the USA."
-  },
-  {
     "word": "meeting",
     "pos": "noun",
     "definition": "An assembly of people for a specific purpose.",
     "example": "We have a meeting scheduled for Friday."
-  },
-  {
-    "word": "rss",
-    "pos": "noun",
-    "definition": "A format for web feeds, often used for news updates.",
-    "example": "I subscribe to the RSS feed for daily news."
   },
   {
     "word": "become",
@@ -3934,12 +3610,6 @@
     "pos": "verb",
     "definition": "To go or come into a place or situation.",
     "example": "Please enter the room quietly."
-  },
-  {
-    "word": "california",
-    "pos": "noun",
-    "definition": "A large state on the west coast of the United States.",
-    "example": "California is known for its beautiful beaches."
   },
   {
     "word": "share",
@@ -4080,12 +3750,6 @@
     "example": "The news reports were very detailed."
   },
   {
-    "word": "co",
-    "pos": "noun",
-    "definition": "Short for company or corporation.",
-    "example": "Smith & Co. makes excellent products."
-  },
-  {
     "word": "try",
     "pos": "verb",
     "definition": "Make an effort to achieve or do something.",
@@ -4188,12 +3852,6 @@
     "example": "The train runs on the track."
   },
   {
-    "word": "australia",
-    "pos": "noun",
-    "definition": "A country and continent in the Southern Hemisphere.",
-    "example": "I want to visit Australia someday."
-  },
-  {
     "word": "discussion",
     "pos": "noun",
     "definition": "Conversation or debate about a specific topic.",
@@ -4278,12 +3936,6 @@
     "example": "Are you sure you want to go?"
   },
   {
-    "word": "faq",
-    "pos": "noun",
-    "definition": "A list of frequently asked questions and their answers.",
-    "example": "Check the FAQ page for more information."
-  },
-  {
     "word": "trade",
     "pos": "noun",
     "definition": "An exchange of goods or services.",
@@ -4356,12 +4008,6 @@
     "example": "The hotel provides free breakfast for guests."
   },
   {
-    "word": "david",
-    "pos": "noun",
-    "definition": "A common male given name.",
-    "example": "David is my friend from school."
-  },
-  {
     "word": "fun",
     "pos": "noun",
     "definition": "Enjoyment, amusement, or lighthearted pleasure.",
@@ -4422,22 +4068,10 @@
     "example": "Pure gold is very soft and shiny."
   },
   {
-    "word": "feb",
-    "pos": "noun",
-    "definition": "Abbreviation for February, the second month of the year.",
-    "example": "Feb has only 28 days usually."
-  },
-  {
     "word": "living",
     "pos": "adjective",
     "definition": "Possessing life; not dead.",
     "example": "All living things need water."
-  },
-  {
-    "word": "sep",
-    "pos": "noun",
-    "definition": "Short for September, the ninth month of the year.",
-    "example": "My birthday is in Sep."
   },
   {
     "word": "collection",
@@ -4548,12 +4182,6 @@
     "example": "The library book is due tomorrow."
   },
   {
-    "word": "et",
-    "pos": "conjunction",
-    "definition": "Meaning 'and', typically used in Latin phrases like 'et cetera'.",
-    "example": "Please bring paper, pens, et cetera."
-  },
-  {
     "word": "electronics",
     "pos": "noun",
     "definition": "The study or application of electronic devices and systems.",
@@ -4608,12 +4236,6 @@
     "example": "The weather is beautiful today."
   },
   {
-    "word": "mar",
-    "pos": "verb",
-    "definition": "To spoil or damage something, especially its appearance.",
-    "example": "A scratch can mar the perfect surface."
-  },
-  {
     "word": "land",
     "pos": "noun",
     "definition": "The part of Earth's surface not covered by water.",
@@ -4642,12 +4264,6 @@
     "pos": "noun",
     "definition": "An opening in a wall to admit light or air.",
     "example": "Please close the window; it's cold outside."
-  },
-  {
-    "word": "france",
-    "pos": "noun",
-    "definition": "A large country in Western Europe.",
-    "example": "Paris is the capital city of France."
   },
   {
     "word": "pro",
@@ -4680,12 +4296,6 @@
     "example": "Take the direct route to the store."
   },
   {
-    "word": "microsoft",
-    "pos": "noun",
-    "definition": "A major American technology company known for software products.",
-    "example": "I use Microsoft Word for documents."
-  },
-  {
     "word": "conference",
     "pos": "noun",
     "definition": "A formal meeting for discussion or consultation.",
@@ -4702,12 +4312,6 @@
     "pos": "noun",
     "definition": "Official written information or circular discs for playing music.",
     "example": "The library has many old records."
-  },
-  {
-    "word": "st",
-    "pos": "noun",
-    "definition": "Abbreviation for 'street' or 'saint'.",
-    "example": "My office is on Main St."
   },
   {
     "word": "district",
@@ -4734,12 +4338,6 @@
     "example": "I like her unique personal style."
   },
   {
-    "word": "url",
-    "pos": "noun",
-    "definition": "A web address for finding an internet resource.",
-    "example": "Please share the URL with me."
-  },
-  {
     "word": "front",
     "pos": "noun",
     "definition": "The forward part or surface of something.",
@@ -4762,12 +4360,6 @@
     "pos": "noun",
     "definition": "Separate pieces making up a whole.",
     "example": "My bike needs new parts."
-  },
-  {
-    "word": "aug",
-    "pos": "noun",
-    "definition": "Abbreviation for August, the eighth month of the year.",
-    "example": "We're going on vacation in Aug."
   },
   {
     "word": "ever",
@@ -4858,12 +4450,6 @@
     "pos": "noun",
     "definition": "A statement of money owed for goods or services.",
     "example": "Can I have the bill, please?"
-  },
-  {
-    "word": "apr",
-    "pos": "noun",
-    "definition": "Abbreviation for April, the fourth month of the year.",
-    "example": "His appointment is scheduled for apr 15th."
   },
   {
     "word": "written",
@@ -5142,12 +4728,6 @@
     "example": "The country faces a lot of economic problems."
   },
   {
-    "word": "en",
-    "pos": "noun",
-    "definition": "The name of the letter N.",
-    "example": "Write an en for 'night'."
-  },
-  {
     "word": "player",
     "pos": "noun",
     "definition": "A person who takes part in a game or sport.",
@@ -5268,12 +4848,6 @@
     "example": "Many servers run Linux for their operations."
   },
   {
-    "word": "jul",
-    "pos": "noun",
-    "definition": "Scandinavian word for Christmas.",
-    "example": "Happy Jul to everyone!"
-  },
-  {
     "word": "production",
     "pos": "noun",
     "definition": "The process of making or manufacturing something.",
@@ -5374,12 +4948,6 @@
     "pos": "noun",
     "definition": "A device used for taking photographs or recording videos.",
     "example": "I took a picture with my new camera."
-  },
-  {
-    "word": "jun",
-    "pos": "noun",
-    "definition": "A common East Asian given name.",
-    "example": "Jun moved to a new city last week."
   },
   {
     "word": "girl",
@@ -5662,12 +5230,6 @@
     "pos": "adjective",
     "definition": "Relating to a large company or business.",
     "example": "He works in the corporate office downtown."
-  },
-  {
-    "word": "google",
-    "pos": "verb",
-    "definition": "To search for information online using Google.",
-    "example": "I will google that later tonight."
   },
   {
     "word": "church",
@@ -6144,12 +5706,6 @@
     "example": "She earns a 10% commission on every sale."
   },
   {
-    "word": "ad",
-    "pos": "noun",
-    "definition": "A public notice promoting something.",
-    "example": "I saw an ad for a new car."
-  },
-  {
     "word": "package",
     "pos": "noun",
     "definition": "A container, typically wrapped, containing items.",
@@ -6354,12 +5910,6 @@
     "example": "She held her breath for a moment."
   },
   {
-    "word": "ny",
-    "pos": "noun",
-    "definition": "Abbreviation for New York.",
-    "example": "She hopes to visit NY someday soon."
-  },
-  {
     "word": "anything",
     "pos": "pronoun",
     "definition": "Any thing, item, or matter.",
@@ -6436,12 +5986,6 @@
     "pos": "noun",
     "definition": "A public building or room for gambling and entertainment.",
     "example": "We went to the casino hoping to win."
-  },
-  {
-    "word": "pdf",
-    "pos": "noun",
-    "definition": "A digital document file format.",
-    "example": "Can you send me the PDF?"
   },
   {
     "word": "lost",
@@ -6624,12 +6168,6 @@
     "example": "According to the news, it will rain tomorrow."
   },
   {
-    "word": "dc",
-    "pos": "noun",
-    "definition": "Electric current flowing in one direction.",
-    "example": "Most batteries produce DC current."
-  },
-  {
     "word": "clothing",
     "pos": "noun",
     "definition": "Items worn to cover the body.",
@@ -6670,12 +6208,6 @@
     "pos": "noun",
     "definition": "A common English male given name.",
     "example": "Robert is my friend from school."
-  },
-  {
-    "word": "homepage",
-    "pos": "noun",
-    "definition": "The main introductory page of a website.",
-    "example": "Click on the logo to go to our homepage."
   },
   {
     "word": "hour",
@@ -7020,12 +6552,6 @@
     "example": "I saw a flash of lightning."
   },
   {
-    "word": "ms",
-    "pos": "noun",
-    "definition": "A title for a woman, regardless of marital status.",
-    "example": "Please welcome Ms. Jones to the stage."
-  },
-  {
     "word": "lead",
     "pos": "verb",
     "definition": "To guide or direct a group or person.",
@@ -7344,12 +6870,6 @@
     "example": "He took a big los in that game."
   },
   {
-    "word": "hp",
-    "pos": "noun",
-    "definition": "A unit of power, especially for engines.",
-    "example": "My car has 200 hp."
-  },
-  {
     "word": "focus",
     "pos": "verb",
     "definition": "Direct attention or effort towards something.",
@@ -7488,12 +7008,6 @@
     "example": "Her voice was beautiful."
   },
   {
-    "word": "eg",
-    "pos": "adverb",
-    "definition": "For example; for instance.",
-    "example": "Bring snacks, e.g., chips or fruit."
-  },
-  {
     "word": "friendly",
     "pos": "adjective",
     "definition": "Kind, pleasant, and helpful; showing goodwill.",
@@ -7558,12 +7072,6 @@
     "pos": "adjective",
     "definition": "Not controlled by others; free.",
     "example": "She is an independent person who likes to travel alone."
-  },
-  {
-    "word": "ip",
-    "pos": "noun",
-    "definition": "An Internet Protocol address.",
-    "example": "What is your computer's IP address?"
   },
   {
     "word": "approach",
@@ -7756,12 +7264,6 @@
     "pos": "noun",
     "definition": "All the inhabitants of a particular place.",
     "example": "The city's population is growing rapidly."
-  },
-  {
-    "word": "pa",
-    "pos": "noun",
-    "definition": "A familiar or informal term for father.",
-    "example": "My pa works hard every day."
   },
   {
     "word": "regular",
@@ -8076,12 +7578,6 @@
     "example": "Flu is a common disease."
   },
   {
-    "word": "tx",
-    "pos": "noun",
-    "definition": "Abbreviation for 'transaction', often used in digital communication.",
-    "example": "Your recent tx appears as pending."
-  },
-  {
     "word": "excellent",
     "pos": "adjective",
     "definition": "Extremely good; outstanding.",
@@ -8208,22 +7704,10 @@
     "example": "She painted the wall blue."
   },
   {
-    "word": "ie",
-    "pos": "adverb",
-    "definition": "That is; in other words; used to clarify a preceding statement.",
-    "example": "Bring two items, i.e., a pen and paper."
-  },
-  {
     "word": "involved",
     "pos": "adjective",
     "definition": "Connected to or participating in something.",
     "example": "He was involved in the school project."
-  },
-  {
-    "word": "el",
-    "pos": "noun",
-    "definition": "An elevated train or railway.",
-    "example": "Take the el to get downtown."
   },
   {
     "word": "extra",
@@ -8280,12 +7764,6 @@
     "example": "What is the maximum weight allowed for this bag?"
   },
   {
-    "word": "ma",
-    "pos": "noun",
-    "definition": "A familiar or informal term for mother.",
-    "example": "My ma called to check in on me."
-  },
-  {
     "word": "operation",
     "pos": "noun",
     "definition": "A planned action, process, or surgical procedure.",
@@ -8314,12 +7792,6 @@
     "pos": "noun",
     "definition": "A young male human, especially a child or adolescent.",
     "example": "The boy played with his toy car."
-  },
-  {
-    "word": "amazon",
-    "pos": "noun",
-    "definition": "A mythical female warrior or a tall, strong woman.",
-    "example": "She was an Amazon, tall and strong."
   },
   {
     "word": "patients",
@@ -8730,12 +8202,6 @@
     "example": "That documentary was very educational."
   },
   {
-    "word": "md",
-    "pos": "noun",
-    "definition": "A medical doctor; physician.",
-    "example": "My brother is an MD."
-  },
-  {
     "word": "leading",
     "pos": "adjective",
     "definition": "Most important or prominent; principal.",
@@ -8754,12 +8220,6 @@
     "example": "Keep a positive attitude."
   },
   {
-    "word": "fl",
-    "pos": "noun",
-    "definition": "Abbreviation for the US state of Florida.",
-    "example": "We are going to FL for vacation."
-  },
-  {
     "word": "fitness",
     "pos": "noun",
     "definition": "The state of being physically healthy and strong.",
@@ -8776,12 +8236,6 @@
     "pos": "noun",
     "definition": "A belief or judgment not necessarily based on fact.",
     "example": "Everyone has a different opinion about the movie."
-  },
-  {
-    "word": "mb",
-    "pos": "noun",
-    "definition": "A unit of digital information equal to one million bytes.",
-    "example": "This picture file is about 2 MB."
   },
   {
     "word": "asia",
@@ -8818,12 +8272,6 @@
     "pos": "noun",
     "definition": "Money available for a specific purpose.",
     "example": "We need funds for the new project."
-  },
-  {
-    "word": "mr",
-    "pos": "noun",
-    "definition": "A title used before a man's name.",
-    "example": "Mr. Smith lives next door."
   },
   {
     "word": "greater",
@@ -9034,12 +8482,6 @@
     "pos": "noun",
     "definition": "A common female given name of Hebrew origin.",
     "example": "Mary is my best friend."
-  },
-  {
-    "word": "il",
-    "pos": "pronoun",
-    "definition": "He, referring to an unspecified male person or thing.",
-    "example": "If il should arrive, inform me at once."
   },
   {
     "word": "expected",
@@ -9262,12 +8704,6 @@
     "pos": "noun",
     "definition": "Moving people or goods from one place to another.",
     "example": "Public transportation helps many people commute daily."
-  },
-  {
-    "word": "mm",
-    "pos": "interjection",
-    "definition": "Expresses hesitation, thought, or agreement.",
-    "example": "Mm, that sounds like a good idea."
   },
   {
     "word": "pool",
@@ -9496,12 +8932,6 @@
     "pos": "noun",
     "definition": "Roles or purposes something performs.",
     "example": "This device has many useful functions."
-  },
-  {
-    "word": "ed",
-    "pos": "noun",
-    "definition": "A common nickname for the name Edward or Edgar.",
-    "example": "Ed told me a funny story today."
   },
   {
     "word": "moving",
@@ -9798,12 +9228,6 @@
     "example": "I ate a crisp red apple."
   },
   {
-    "word": "le",
-    "pos": "adjective",
-    "definition": "Informal, used to describe a sigh, gasp, or sound as humorous or ironic.",
-    "example": "Oh, le sigh, another Monday morning."
-  },
-  {
     "word": "regarding",
     "pos": "preposition",
     "definition": "Concerning or relating to something; about.",
@@ -10002,12 +9426,6 @@
     "example": "We finally finished the project."
   },
   {
-    "word": "az",
-    "pos": "conjunction",
-    "definition": "Used to introduce a clause of comparison or manner.",
-    "example": "Do az I say."
-  },
-  {
     "word": "updates",
     "pos": "noun",
     "definition": "Latest versions or new information about something.",
@@ -10066,12 +9484,6 @@
     "pos": "noun",
     "definition": "A knitted shirt, often for sports, or the fabric itself.",
     "example": "He wore his favorite hockey jersey to the game."
-  },
-  {
-    "word": "un",
-    "pos": "pronoun",
-    "definition": "An informal or dialectal short form of 'one' or 'him'.",
-    "example": "Can I have un of those?"
   },
   {
     "word": "fat",
@@ -10186,12 +9598,6 @@
     "pos": "adjective",
     "definition": "Having a particular value, importance, or deserving attention.",
     "example": "This movie is worth watching."
-  },
-  {
-    "word": "mi",
-    "pos": "noun",
-    "definition": "The third note of the diatonic musical scale.",
-    "example": "Can you sing mi for me?"
   },
   {
     "word": "procedures",
@@ -10476,12 +9882,6 @@
     "example": "This math problem is too complex for me."
   },
   {
-    "word": "th",
-    "pos": "noun",
-    "definition": "Informal abbreviation for 'third place' or 'third position'.",
-    "example": "She finished th in the race."
-  },
-  {
     "word": "cat",
     "pos": "noun",
     "definition": "A small furry animal often kept as a pet.",
@@ -10576,12 +9976,6 @@
     "pos": "noun",
     "definition": "The place or surroundings where something happens.",
     "example": "The story has a medieval setting."
-  },
-  {
-    "word": "dr",
-    "pos": "noun",
-    "definition": "Abbreviation for doctor or academic title.",
-    "example": "Please call Dr. Lee for an appointment."
   },
   {
     "word": "scale",
@@ -10690,12 +10084,6 @@
     "pos": "verb",
     "definition": "To transfer something to someone.",
     "example": "He gives her flowers every week."
-  },
-  {
-    "word": "kb",
-    "pos": "noun",
-    "definition": "A unit of digital information, approximately one thousand bytes.",
-    "example": "The file size is only 50 kb."
   },
   {
     "word": "bottom",
@@ -10902,12 +10290,6 @@
     "example": "There is a high demand for organic produce."
   },
   {
-    "word": "pp",
-    "pos": "noun",
-    "definition": "A child's informal word for a penis.",
-    "example": "The toddler pointed to his pp."
-  },
-  {
     "word": "suite",
     "pos": "noun",
     "definition": "A set of connected rooms, or a collection of related items.",
@@ -10918,12 +10300,6 @@
     "pos": "noun",
     "definition": "A city in Nevada famous for casinos and entertainment.",
     "example": "Let's plan a trip to Vegas next year."
-  },
-  {
-    "word": "na",
-    "pos": "interjection",
-    "definition": "An informal way of saying \"no.\"",
-    "example": "Na, I don't think so."
   },
   {
     "word": "square",
@@ -10984,12 +10360,6 @@
     "pos": "noun",
     "definition": "The side sheltered from the wind or other elements.",
     "example": "We stood in the lee of the big tree."
-  },
-  {
-    "word": "os",
-    "pos": "noun",
-    "definition": "A bone.",
-    "example": "The doctor examined the fractured os."
   },
   {
     "word": "difference",
@@ -11532,12 +10902,6 @@
     "example": "He is an amateur photographer."
   },
   {
-    "word": "ex",
-    "pos": "noun",
-    "definition": "A person's former spouse or partner.",
-    "example": "My ex called me last night."
-  },
-  {
     "word": "met",
     "pos": "verb",
     "definition": "Came together with someone or something.",
@@ -11646,18 +11010,6 @@
     "example": "The tree has deep roots."
   },
   {
-    "word": "au",
-    "pos": "noun",
-    "definition": "The chemical symbol for the element gold.",
-    "example": "Au is a precious metal."
-  },
-  {
-    "word": "fi",
-    "pos": "noun",
-    "definition": "The musical note F-sharp.",
-    "example": "Sing the fi in the chorus."
-  },
-  {
     "word": "closed",
     "pos": "adjective",
     "definition": "Not open or available; shut.",
@@ -11716,12 +11068,6 @@
     "pos": "noun",
     "definition": "A photograph, an injection, or an attempt.",
     "example": "That's a great shot of the sunset."
-  },
-  {
-    "word": "nc",
-    "pos": "noun",
-    "definition": "Abbreviation for North Carolina, a state in the USA.",
-    "example": "My friend moved to NC last year."
   },
   {
     "word": "architecture",
@@ -11886,12 +11232,6 @@
     "example": "She loves reading fantasy novels about dragons."
   },
   {
-    "word": "po",
-    "pos": "noun",
-    "definition": "The act of defecating, especially by a child.",
-    "example": "The toddler needs to go po now."
-  },
-  {
     "word": "letters",
     "pos": "noun",
     "definition": "Written symbols used to form words.",
@@ -11902,12 +11242,6 @@
     "pos": "noun",
     "definition": "A machine that converts energy into mechanical force or motion.",
     "example": "The car's motor stopped working."
-  },
-  {
-    "word": "va",
-    "pos": "noun",
-    "definition": "An informal term for the female genitalia, specifically the vagina.",
-    "example": "She went to get her va checked by the doctor."
   },
   {
     "word": "professor",
@@ -11994,22 +11328,10 @@
     "example": "My dad used to work for IBM."
   },
   {
-    "word": "rd",
-    "pos": "noun",
-    "definition": "An abbreviation for the word road, a public way.",
-    "example": "My house is located on Elm Rd."
-  },
-  {
     "word": "johnson",
     "pos": "noun",
     "definition": "A common English surname, also a first name.",
     "example": "Mr. Johnson lives next door to us."
-  },
-  {
-    "word": "sc",
-    "pos": "noun",
-    "definition": "A southeastern U.S. state.",
-    "example": "We visited sc on our family vacation."
   },
   {
     "word": "quickly",
@@ -12202,12 +11524,6 @@
     "pos": "noun",
     "definition": "A country in the Middle East.",
     "example": "She visited Israel last year."
-  },
-  {
-    "word": "se",
-    "pos": "adjective",
-    "definition": "Short for southeast, a compass direction.",
-    "example": "The wind blew from the se."
   },
   {
     "word": "processes",
@@ -12432,12 +11748,6 @@
     "example": "I need to upgrade my computer's software."
   },
   {
-    "word": "di",
-    "pos": "noun",
-    "definition": "A common short form of the name Diana.",
-    "example": "Di is going on holiday next week."
-  },
-  {
     "word": "factor",
     "pos": "noun",
     "definition": "A cause or element contributing to a particular result.",
@@ -12454,12 +11764,6 @@
     "pos": "noun",
     "definition": "A very large, indefinite number or quantity.",
     "example": "Thousands of people attended the concert."
-  },
-  {
-    "word": "km",
-    "pos": "noun",
-    "definition": "A unit of length equal to 1,000 meters.",
-    "example": "We drove 100 km to the beach."
   },
   {
     "word": "stream",
@@ -12612,18 +11916,6 @@
     "example": "Make an informed decision before voting."
   },
   {
-    "word": "ga",
-    "pos": "verb",
-    "definition": "Informal for \"going to\" or \"got to.\"",
-    "example": "I'm ga go to the store later."
-  },
-  {
-    "word": "ac",
-    "pos": "noun",
-    "definition": "An abbreviation for a financial record or statement.",
-    "example": "Please check your ac balance online."
-  },
-  {
     "word": "thoughts",
     "pos": "noun",
     "definition": "Ideas or opinions formed in the mind.",
@@ -12634,12 +11926,6 @@
     "pos": "noun",
     "definition": "A small, natural stream of water.",
     "example": "We skipped rocks across the creek."
-  },
-  {
-    "word": "ft",
-    "pos": "noun",
-    "definition": "Abbreviation for foot or feet, a unit of length.",
-    "example": "The table is three ft long."
   },
   {
     "word": "worked",
@@ -12906,12 +12192,6 @@
     "example": "He became rich after investing wisely."
   },
   {
-    "word": "im",
-    "pos": "verb",
-    "definition": "A contraction of 'I am'.",
-    "example": "I'm going to the store."
-  },
-  {
     "word": "campaign",
     "pos": "noun",
     "definition": "A series of planned activities to achieve a specific goal.",
@@ -12928,12 +12208,6 @@
     "pos": "noun",
     "definition": "The act or process of making something better.",
     "example": "There's still room for improvement."
-  },
-  {
-    "word": "vs",
-    "pos": "preposition",
-    "definition": "Against, especially in competition or comparison.",
-    "example": "It's a game of us vs. them."
   },
   {
     "word": "guitar",
@@ -12978,12 +12252,6 @@
     "example": "Her lively spirit made everyone feel welcome."
   },
   {
-    "word": "ar",
-    "pos": "noun",
-    "definition": "A unit of land area, 100 square meters.",
-    "example": "The small garden was exactly one ar."
-  },
-  {
     "word": "claims",
     "pos": "noun",
     "definition": "Assertions of truth, rights, or compensation.",
@@ -13014,12 +12282,6 @@
     "example": "We need new strategies to improve our marketing."
   },
   {
-    "word": "mo",
-    "pos": "noun",
-    "definition": "A very brief period of time; a moment.",
-    "example": "Can you wait a mo?"
-  },
-  {
     "word": "seem",
     "pos": "verb",
     "definition": "To appear to be or to be true.",
@@ -13048,12 +12310,6 @@
     "pos": "preposition",
     "definition": "In the direction of, or approaching something.",
     "example": "He walked towards the light."
-  },
-  {
-    "word": "sa",
-    "pos": "verb",
-    "definition": "Past tense of say.",
-    "example": "He sa he was coming."
   },
   {
     "word": "goals",
@@ -13156,12 +12412,6 @@
     "pos": "noun",
     "definition": "Combination of text, audio, video, and interactive content.",
     "example": "The museum exhibit featured a lot of multimedia."
-  },
-  {
-    "word": "xp",
-    "pos": "noun",
-    "definition": "Experience points, typically gained in a video game.",
-    "example": "I need more xp to level up my character."
   },
   {
     "word": "avoid",
@@ -13554,12 +12804,6 @@
     "example": "Spring follows winter every year."
   },
   {
-    "word": "eu",
-    "pos": "noun",
-    "definition": "An abbreviation for the European Union.",
-    "example": "The EU has 27 member states."
-  },
-  {
     "word": "weekend",
     "pos": "noun",
     "definition": "The period from Friday evening through Sunday.",
@@ -13686,12 +12930,6 @@
     "example": "I have many useful contacts in this industry."
   },
   {
-    "word": "cc",
-    "pos": "verb",
-    "definition": "To send a copy of an email to an additional recipient.",
-    "example": "Please cc me on that email."
-  },
-  {
     "word": "jesus",
     "pos": "noun",
     "definition": "Central figure of Christianity, believed to be God's Son.",
@@ -13714,12 +12952,6 @@
     "pos": "noun",
     "definition": "A type of flat-panel display screen.",
     "example": "My new TV has a large LCD screen."
-  },
-  {
-    "word": "wa",
-    "pos": "noun",
-    "definition": "A sound, often a cry or an expression of confusion.",
-    "example": "The baby gave a small wa."
   },
   {
     "word": "jackson",
@@ -13798,12 +13030,6 @@
     "pos": "noun",
     "definition": "A formal or reverent greeting or salutation.",
     "example": "The crowd offered a reverent ave to the emperor."
-  },
-  {
-    "word": "dj",
-    "pos": "noun",
-    "definition": "A person who plays recorded music for an audience.",
-    "example": "The DJ played my favorite song."
   },
   {
     "word": "advertisement",
@@ -13926,18 +13152,6 @@
     "example": "Soldiers once guarded the old fort."
   },
   {
-    "word": "cm",
-    "pos": "noun",
-    "definition": "A unit of length, one-hundredth of a meter.",
-    "example": "The line is five cm long."
-  },
-  {
-    "word": "wi",
-    "pos": "noun",
-    "definition": "Informal short for wireless internet access or technology.",
-    "example": "Is there any free wi here?"
-  },
-  {
     "word": "lighting",
     "pos": "noun",
     "definition": "Equipment used to illuminate or the effect of light.",
@@ -14020,12 +13234,6 @@
     "pos": "noun",
     "definition": "A repeated design, arrangement, or sequence.",
     "example": "I like the pattern on this shirt."
-  },
-  {
-    "word": "ct",
-    "pos": "noun",
-    "definition": "Abbreviation for carat, a unit of gem weight.",
-    "example": "The ring has a 1 ct diamond."
   },
   {
     "word": "boat",
@@ -14226,12 +13434,6 @@
     "example": "That statement is false."
   },
   {
-    "word": "da",
-    "pos": "adverb",
-    "definition": "An informal, often emphatic, way of saying yes.",
-    "example": "Da, I'm ready to go now."
-  },
-  {
     "word": "cast",
     "pos": "verb",
     "definition": "To throw, direct, or shed something.",
@@ -14358,28 +13560,10 @@
     "example": "We decided to go to the park."
   },
   {
-    "word": "nj",
-    "pos": "noun",
-    "definition": "Abbreviation for the US state of New Jersey.",
-    "example": "She grew up in NJ."
-  },
-  {
     "word": "covers",
     "pos": "verb",
     "definition": "To place something over or protect it.",
     "example": "The blanket covers the bed."
-  },
-  {
-    "word": "hr",
-    "pos": "noun",
-    "definition": "An abbreviation for hour, a unit of time.",
-    "example": "The meeting will take one hr."
-  },
-  {
-    "word": "em",
-    "pos": "pronoun",
-    "definition": "Colloquial short form of 'them', used as an object pronoun.",
-    "example": "Give 'em a call later."
   },
   {
     "word": "advantage",
@@ -14442,12 +13626,6 @@
     "example": "He used his savings to buy a new car."
   },
   {
-    "word": "iv",
-    "pos": "noun",
-    "definition": "A medical drip directly into a vein.",
-    "example": "The patient needed an IV for hydration."
-  },
-  {
     "word": "graphic",
     "pos": "adjective",
     "definition": "Relating to visual images or art.",
@@ -14464,12 +13642,6 @@
     "pos": "noun",
     "definition": "Amounts of money paid or due for goods or services.",
     "example": "I made all my payments on time."
-  },
-  {
-    "word": "rw",
-    "pos": "noun",
-    "definition": "The capability for both reading and writing data.",
-    "example": "The drive has full RW."
   },
   {
     "word": "estimated",
@@ -14724,12 +13896,6 @@
     "example": "People often associate roses with romance."
   },
   {
-    "word": "ne",
-    "pos": "adverb",
-    "definition": "An archaic word meaning 'not'.",
-    "example": "Ne was it true."
-  },
-  {
     "word": "truck",
     "pos": "noun",
     "definition": "A large road vehicle used for transporting goods.",
@@ -14782,12 +13948,6 @@
     "pos": "verb",
     "definition": "To express a formal choice or opinion.",
     "example": "She votes in every national election."
-  },
-  {
-    "word": "du",
-    "pos": "noun",
-    "definition": "A common Vietnamese family name.",
-    "example": "Mr. Du works at the local shop."
   },
   {
     "word": "duty",
@@ -15180,22 +14340,10 @@
     "example": "The newspaper published a strong editorial about the economy."
   },
   {
-    "word": "nt",
-    "pos": "adverb",
-    "definition": "A very informal abbreviation for 'not'.",
-    "example": "It's nt fair to blame me."
-  },
-  {
     "word": "expression",
     "pos": "noun",
     "definition": "The act of conveying thoughts, feelings, or ideas.",
     "example": "Art is a powerful form of expression."
-  },
-  {
-    "word": "es",
-    "pos": "noun",
-    "definition": "The name of the English alphabet letter S.",
-    "example": "The word 'bus' ends with an es."
   },
   {
     "word": "equity",
@@ -15360,12 +14508,6 @@
     "example": "She filed the important papers in the cabinet."
   },
   {
-    "word": "gb",
-    "pos": "noun",
-    "definition": "Unit of digital data storage, short for gigabyte.",
-    "example": "My new laptop has 500 gb of space."
-  },
-  {
     "word": "netherlands",
     "pos": "noun",
     "definition": "A country located in Western Europe.",
@@ -15376,12 +14518,6 @@
     "pos": "verb",
     "definition": "To get or acquire something.",
     "example": "You can obtain a copy of the form online."
-  },
-  {
-    "word": "bc",
-    "pos": "adverb",
-    "definition": "Before the birth of Christ.",
-    "example": "Julius Caesar died in 44 BC."
   },
   {
     "word": "consulting",
@@ -15420,12 +14556,6 @@
     "example": "She managed to finish the report on time."
   },
   {
-    "word": "pr",
-    "pos": "noun",
-    "definition": "Public relations or promotional work.",
-    "example": "She works in PR for a big company."
-  },
-  {
     "word": "failed",
     "pos": "verb",
     "definition": "Did not succeed in achieving a goal.",
@@ -15456,12 +14586,6 @@
     "example": "Many people keep their money in banks."
   },
   {
-    "word": "fr",
-    "pos": "adverb",
-    "definition": "Slang for 'for real,' indicating truth or surprise.",
-    "example": "That movie was so good, fr."
-  },
-  {
     "word": "participants",
     "pos": "noun",
     "definition": "People who take part in an activity or event.",
@@ -15478,12 +14602,6 @@
     "pos": "noun",
     "definition": "An act of washing one's body in water.",
     "example": "I need to take a bath."
-  },
-  {
-    "word": "aa",
-    "pos": "noun",
-    "definition": "A type of rough, broken lava flow.",
-    "example": "Hot aa flowed from the volcano."
   },
   {
     "word": "kelly",
@@ -15592,12 +14710,6 @@
     "pos": "noun",
     "definition": "Harm or damage done to a person or thing.",
     "example": "He sustained an injury playing football."
-  },
-  {
-    "word": "mt",
-    "pos": "noun",
-    "definition": "Abbreviation for 'mountain', a large natural elevation.",
-    "example": "Mt. Everest is the world's highest peak."
   },
   {
     "word": "joseph",
@@ -16014,12 +15126,6 @@
     "example": "We sat in the front row."
   },
   {
-    "word": "oz",
-    "pos": "noun",
-    "definition": "Abbreviation for ounce, a unit of weight or volume.",
-    "example": "Please give me 6 oz of cheese."
-  },
-  {
     "word": "forecast",
     "pos": "noun",
     "definition": "A prediction of future events, often weather.",
@@ -16096,12 +15202,6 @@
     "pos": "verb",
     "definition": "To rest your body and mind, usually with closed eyes.",
     "example": "I need to sleep for eight hours tonight."
-  },
-  {
-    "word": "mg",
-    "pos": "noun",
-    "definition": "A unit of mass, one thousandth of a gram.",
-    "example": "This pill contains 20 mg of active ingredient."
   },
   {
     "word": "bird",
@@ -16596,12 +15696,6 @@
     "example": "The car was maintained properly."
   },
   {
-    "word": "ch",
-    "pos": "noun",
-    "definition": "A section of a book or document.",
-    "example": "Please turn to ch five."
-  },
-  {
     "word": "increasing",
     "pos": "adjective",
     "definition": "Becoming greater in size, amount, or intensity.",
@@ -16636,12 +15730,6 @@
     "pos": "noun",
     "definition": "More than one domesticated canine animal.",
     "example": "The dogs played in the park all day."
-  },
-  {
-    "word": "sd",
-    "pos": "noun",
-    "definition": "A common type of removable electronic memory card.",
-    "example": "My camera uses an sd card for photos."
   },
   {
     "word": "directors",
@@ -16828,12 +15916,6 @@
     "pos": "noun",
     "definition": "A mythical bird reborn from ashes.",
     "example": "The company rose like a phoenix from the ashes."
-  },
-  {
-    "word": "rs",
-    "pos": "noun",
-    "definition": "Abbreviation for rupees, a unit of currency.",
-    "example": "The shirt costs 300 rs."
   },
   {
     "word": "convention",
@@ -17140,12 +16222,6 @@
     "pos": "verb",
     "definition": "To put or keep someone or something out of sight.",
     "example": "The children like to hide and seek."
-  },
-  {
-    "word": "permalink",
-    "pos": "noun",
-    "definition": "A permanent web address for a specific piece of content.",
-    "example": "Click the permalink to share this blog post."
   },
   {
     "word": "signature",
@@ -17796,12 +16872,6 @@
     "example": "I like cream in my coffee."
   },
   {
-    "word": "ss",
-    "pos": "noun",
-    "definition": "An image of a computer or phone screen.",
-    "example": "Can you send an ss of that message?"
-  },
-  {
     "word": "runs",
     "pos": "verb",
     "definition": "Moves swiftly on foot using legs.",
@@ -17824,12 +16894,6 @@
     "pos": "verb",
     "definition": "To find something unexpectedly or for the first time.",
     "example": "Scientists discovered a new planet."
-  },
-  {
-    "word": "ap",
-    "pos": "noun",
-    "definition": "A software program, especially for mobile devices.",
-    "example": "I downloaded a new ap for my phone."
   },
   {
     "word": "patterns",
@@ -17868,34 +16932,16 @@
     "example": "Today is the fourth day of the month."
   },
   {
-    "word": "nm",
-    "pos": "interjection",
-    "definition": "Informal abbreviation meaning \"not much\" or \"never mind.\"",
-    "example": "\"What's up?\" \"Nm, just chilling.\""
-  },
-  {
     "word": "advisor",
     "pos": "noun",
     "definition": "A person who offers advice or guidance.",
     "example": "My academic advisor helped me choose classes."
   },
   {
-    "word": "mn",
-    "pos": "interjection",
-    "definition": "A sound indicating thought or uncertainty.",
-    "example": "Mn, I'm not sure about that plan."
-  },
-  {
     "word": "marketplace",
     "pos": "noun",
     "definition": "A place where goods and services are bought and sold.",
     "example": "Online marketplaces offer a wide variety of products."
-  },
-  {
-    "word": "nd",
-    "pos": "conjunction",
-    "definition": "An informal way to connect words, phrases, or clauses.",
-    "example": "I need a pen nd paper quickly."
   },
   {
     "word": "evil",
@@ -17962,12 +17008,6 @@
     "pos": "noun",
     "definition": "A system or device for determining position anywhere on Earth.",
     "example": "My phone has a GPS for navigation."
-  },
-  {
-    "word": "op",
-    "pos": "noun",
-    "definition": "A surgical operation.",
-    "example": "He had an op on his knee."
   },
   {
     "word": "remains",
