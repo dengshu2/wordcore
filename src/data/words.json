@@ -810,12 +810,6 @@
     "example": "Is the manager available for a meeting?"
   },
   {
-    "word": "copyright",
-    "pos": "noun",
-    "definition": "Legal right to control reproduction of creative works.",
-    "example": "She registered the copyright for her novel."
-  },
-  {
     "word": "support",
     "pos": "verb",
     "definition": "To hold up or provide help and encouragement.",
@@ -1408,18 +1402,6 @@
     "pos": "noun",
     "definition": "An electronic device used for voice communication.",
     "example": "I need to charge my phone tonight."
-  },
-  {
-    "word": "shipping",
-    "pos": "noun",
-    "definition": "The act or business of transporting goods.",
-    "example": "Shipping costs are usually extra."
-  },
-  {
-    "word": "reserved",
-    "pos": "adjective",
-    "definition": "Slow to show feelings or express oneself.",
-    "example": "He is a reserved person and doesn't talk much."
   },
   {
     "word": "subject",
@@ -2694,12 +2676,6 @@
     "example": "The coffee is too hot to drink."
   },
   {
-    "word": "accessories",
-    "pos": "noun",
-    "definition": "Extra items for decoration, comfort, or convenience.",
-    "example": "She bought some new phone accessories."
-  },
-  {
     "word": "cost",
     "pos": "verb",
     "definition": "To require a specified payment, expense, or sacrifice.",
@@ -2800,12 +2776,6 @@
     "pos": "noun",
     "definition": "A formal request, or the act of applying something.",
     "example": "I submitted my job application yesterday."
-  },
-  {
-    "word": "cart",
-    "pos": "noun",
-    "definition": "A wheeled vehicle for carrying loads, often pulled.",
-    "example": "I pushed the grocery cart down the aisle."
   },
   {
     "word": "staff",
@@ -3304,12 +3274,6 @@
     "pos": "adjective",
     "definition": "The cardinal number equal to three plus one.",
     "example": "There are four seasons in a year."
-  },
-  {
-    "word": "poker",
-    "pos": "noun",
-    "definition": "A popular card game where players bet on the strength of their hand.",
-    "example": "We played a friendly game of poker last night."
   },
   {
     "word": "status",
@@ -5214,12 +5178,6 @@
     "example": "Learning to read is a basic skill."
   },
   {
-    "word": "sony",
-    "pos": "noun",
-    "definition": "A major Japanese electronics and entertainment company.",
-    "example": "I love my new Sony headphones."
-  },
-  {
     "word": "shows",
     "pos": "verb",
     "definition": "Presents or displays something visually.",
@@ -5350,12 +5308,6 @@
     "pos": "noun",
     "definition": "Rate of motion or action.",
     "example": "The car's speed was too high."
-  },
-  {
-    "word": "html",
-    "pos": "noun",
-    "definition": "A markup language used for creating web pages.",
-    "example": "I'm learning HTML to build websites."
   },
   {
     "word": "countries",
@@ -5980,12 +5932,6 @@
     "pos": "noun",
     "definition": "The act of choosing something or someone.",
     "example": "The store had a good selection of books."
-  },
-  {
-    "word": "casino",
-    "pos": "noun",
-    "definition": "A public building or room for gambling and entertainment.",
-    "example": "We went to the casino hoping to win."
   },
   {
     "word": "lost",
@@ -7476,12 +7422,6 @@
     "example": "My parents are visiting this weekend."
   },
   {
-    "word": "nokia",
-    "pos": "noun",
-    "definition": "A Finnish telecommunications and consumer electronics company.",
-    "example": "My first mobile phone was a Nokia."
-  },
-  {
     "word": "impact",
     "pos": "noun",
     "definition": "A powerful effect or influence.",
@@ -8028,12 +7968,6 @@
     "example": "She told me a secret yesterday."
   },
   {
-    "word": "xml",
-    "pos": "noun",
-    "definition": "Standard for encoding documents and data.",
-    "example": "I need to parse the XML file."
-  },
-  {
     "word": "traffic",
     "pos": "noun",
     "definition": "The movement of vehicles and people on roads.",
@@ -8562,12 +8496,6 @@
     "example": "Please consider my offer carefully."
   },
   {
-    "word": "int",
-    "pos": "noun",
-    "definition": "Abbreviation for integer, a data type storing whole numbers.",
-    "example": "Declare an int variable to store age."
-  },
-  {
     "word": "northern",
     "pos": "adjective",
     "definition": "Of, in, or facing the north.",
@@ -8728,12 +8656,6 @@
     "pos": "noun",
     "definition": "A person who shares in an activity or relationship.",
     "example": "She is my business partner."
-  },
-  {
-    "word": "disclaimer",
-    "pos": "noun",
-    "definition": "A statement disclaiming something, often responsibility or liability.",
-    "example": "Please read the disclaimer before proceeding."
   },
   {
     "word": "authors",
@@ -8952,22 +8874,10 @@
     "example": "We visited many interesting places on our trip."
   },
   {
-    "word": "php",
-    "pos": "noun",
-    "definition": "A popular server-side scripting language for web development.",
-    "example": "He built the website using PHP."
-  },
-  {
     "word": "pretty",
     "pos": "adjective",
     "definition": "Pleasant to look at; attractive.",
     "example": "She has a pretty smile."
-  },
-  {
-    "word": "trademarks",
-    "pos": "noun",
-    "definition": "Symbols legally registered to represent a company or product.",
-    "example": "Apple's logo is one of its famous trademarks."
   },
   {
     "word": "phentermine",
@@ -10662,12 +10572,6 @@
     "example": "She bought parts from an automotive supply store."
   },
   {
-    "word": "naked",
-    "pos": "adjective",
-    "definition": "Without clothes or covering on the body.",
-    "example": "He ran naked into the ocean."
-  },
-  {
     "word": "goal",
     "pos": "noun",
     "definition": "An aim or desired result that one works to achieve.",
@@ -10912,12 +10816,6 @@
     "pos": "noun",
     "definition": "An unpleasant physical sensation caused by illness or injury.",
     "example": "I felt a sharp pain in my leg."
-  },
-  {
-    "word": "xbox",
-    "pos": "noun",
-    "definition": "A popular brand of video game consoles from Microsoft.",
-    "example": "My kids love playing games on their Xbox."
   },
   {
     "word": "particularly",
@@ -12264,12 +12162,6 @@
     "example": "This math problem is a real challenge."
   },
   {
-    "word": "motorola",
-    "pos": "noun",
-    "definition": "A brand name for telecommunications and electronics products.",
-    "example": "My first mobile phone was a Motorola."
-  },
-  {
     "word": "acceptance",
     "pos": "noun",
     "definition": "The act of accepting or being accepted.",
@@ -12622,12 +12514,6 @@
     "pos": "adjective",
     "definition": "Relating to home, family, or household affairs.",
     "example": "She prefers a quiet domestic life."
-  },
-  {
-    "word": "sitemap",
-    "pos": "noun",
-    "definition": "A list of pages on a website, often hierarchical.",
-    "example": "I checked the sitemap to find the careers section."
   },
   {
     "word": "recommendations",
@@ -13074,12 +12960,6 @@
     "example": "She was determined to finish the race."
   },
   {
-    "word": "wholesale",
-    "pos": "adverb",
-    "definition": "In large quantities and at lower prices.",
-    "example": "Many stores buy their items wholesale."
-  },
-  {
     "word": "workshop",
     "pos": "noun",
     "definition": "A session for practical training or skill development.",
@@ -13288,12 +13168,6 @@
     "pos": "noun",
     "definition": "A symbol, image, or person representing something.",
     "example": "Click the shopping cart icon to checkout."
-  },
-  {
-    "word": "warranty",
-    "pos": "noun",
-    "definition": "A written guarantee for repair or replacement of a product.",
-    "example": "My new TV comes with a two-year warranty."
   },
   {
     "word": "dedicated",
@@ -14112,12 +13986,6 @@
     "example": "You must be 18 to be eligible to vote."
   },
   {
-    "word": "checkout",
-    "pos": "noun",
-    "definition": "The act of paying for goods or services.",
-    "example": "The checkout line was very long today."
-  },
-  {
     "word": "reality",
     "pos": "noun",
     "definition": "The state of things as they actually exist.",
@@ -14422,12 +14290,6 @@
     "pos": "verb",
     "definition": "To form an opinion or conclusion about someone or something.",
     "example": "Don't judge a book by its cover."
-  },
-  {
-    "word": "spam",
-    "pos": "noun",
-    "definition": "Unwanted electronic messages, especially unsolicited advertisements.",
-    "example": "My inbox is full of spam today."
   },
   {
     "word": "economics",
@@ -15966,12 +15828,6 @@
     "example": "History is full of wars."
   },
   {
-    "word": "cisco",
-    "pos": "noun",
-    "definition": "A freshwater fish, typically a type of whitefish.",
-    "example": "We caught a few cisco in the lake."
-  },
-  {
     "word": "ordering",
     "pos": "noun",
     "definition": "The process of requesting something to be made or delivered.",
@@ -16068,22 +15924,10 @@
     "example": "My TV remote needs new batteries."
   },
   {
-    "word": "adobe",
-    "pos": "noun",
-    "definition": "Sun-dried brick or building material, often used for homes.",
-    "example": "Many old houses in the Southwest are made of adobe."
-  },
-  {
     "word": "smoking",
     "pos": "noun",
     "definition": "The act of inhaling and exhaling smoke from tobacco.",
     "example": "Smoking is prohibited in this area."
-  },
-  {
-    "word": "bbc",
-    "pos": "noun",
-    "definition": "The United Kingdom's public broadcasting service.",
-    "example": "I often watch the BBC news."
   },
   {
     "word": "becomes",
@@ -16230,12 +16074,6 @@
     "example": "Please put your signature on the line."
   },
   {
-    "word": "gambling",
-    "pos": "noun",
-    "definition": "The act of playing games of chance for money.",
-    "example": "He lost all his money due to gambling."
-  },
-  {
     "word": "refer",
     "pos": "verb",
     "definition": "Mention, allude, or direct attention to something or someone.",
@@ -16354,18 +16192,6 @@
     "pos": "noun",
     "definition": "Abbreviation for source, often referring to code or origin.",
     "example": "Check the src folder for the files."
-  },
-  {
-    "word": "liability",
-    "pos": "noun",
-    "definition": "A debt, obligation, or disadvantage.",
-    "example": "His poor health became a liability to the team."
-  },
-  {
-    "word": "trademark",
-    "pos": "noun",
-    "definition": "A legally registered symbol or name representing a company or product.",
-    "example": "Nike's swoosh is a famous trademark."
   },
   {
     "word": "hip",
@@ -16776,12 +16602,6 @@
     "example": "We are planning a trip to Maine next summer."
   },
   {
-    "word": "sql",
-    "pos": "noun",
-    "definition": "Structured Query Language for managing databases.",
-    "example": "I need to learn SQL for my new job."
-  },
-  {
     "word": "represent",
     "pos": "verb",
     "definition": "To act or speak on behalf of someone or something.",
@@ -16920,12 +16740,6 @@
     "example": "The sheep grazed on the green hills."
   },
   {
-    "word": "javascript",
-    "pos": "noun",
-    "definition": "A popular programming language for web development.",
-    "example": "I'm learning JavaScript to build websites."
-  },
-  {
     "word": "fourth",
     "pos": "adjective",
     "definition": "Being number four in a sequence; coming after the third.",
@@ -16936,12 +16750,6 @@
     "pos": "noun",
     "definition": "A person who offers advice or guidance.",
     "example": "My academic advisor helped me choose classes."
-  },
-  {
-    "word": "marketplace",
-    "pos": "noun",
-    "definition": "A place where goods and services are bought and sold.",
-    "example": "Online marketplaces offer a wide variety of products."
   },
   {
     "word": "evil",
