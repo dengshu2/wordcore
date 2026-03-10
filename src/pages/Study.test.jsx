@@ -22,9 +22,12 @@ vi.mock('../services/sentenceCheck', () => ({
 const mockSetStatus = vi.fn()
 const mockSaveDraft = vi.fn()
 const mockSaveFeedback = vi.fn()
+const mockMarkMastered = vi.fn()
+const mockConfirmReview = vi.fn()
+const mockResetToLearning = vi.fn()
 let mockRecords = {}
 vi.mock('../context/ProgressContext', () => ({
-  useProgressContext: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, masteredCount: 0 })
+  useProgressContext: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, markMastered: mockMarkMastered, confirmReview: mockConfirmReview, resetToLearning: mockResetToLearning, masteredCount: 0 })
 }))
 
 describe('Study', () => {
@@ -32,6 +35,9 @@ describe('Study', () => {
     mockRecords = {}
     mockSetStatus.mockClear()
     mockSaveDraft.mockClear()
+    mockMarkMastered.mockClear()
+    mockConfirmReview.mockClear()
+    mockResetToLearning.mockClear()
     // Simulate the real saveFeedback: updates acceptedAttempts in mockRecords.
     mockSaveFeedback.mockImplementation((word, feedbackResult) => {
       const prev = mockRecords[word] || {}
@@ -131,7 +137,7 @@ describe('Study', () => {
     expect(checkSentence).toHaveBeenCalledTimes(1)
   })
 
-  it('calls setStatus mastered when Mastered is clicked', async () => {
+  it('calls markMastered when Mastered is clicked', async () => {
     mockRecords = {
       abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },
       able: { acceptedAttempts: 2, lastCheckedSentence: '' },
@@ -142,7 +148,7 @@ describe('Study', () => {
     fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
     await screen.findByText(/suggested:/i)
     fireEvent.click(screen.getByRole('button', { name: /mastered/i }))
-    expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'mastered')
+    expect(mockMarkMastered).toHaveBeenCalledWith(shown.word)
   })
 
   it('calls setStatus learning when Again is clicked', async () => {

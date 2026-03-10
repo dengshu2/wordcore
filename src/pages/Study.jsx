@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
-import { getNextWord, includesTargetWord } from './studySession'
+import { getNextWord, getEarliestReviewDate, includesTargetWord } from './studySession'
 import { checkSentence } from '../services/sentenceCheck'
+import { computeNextReviewAt } from '../hooks/useProgress'
 
 const REQUIRED_ACCEPTED_ATTEMPTS = 3
 
@@ -26,7 +27,7 @@ function getRequestedWord(wordList, requestedWord) {
 }
 
 export default function Study() {
-  const { records, setStatus, saveDraft, saveFeedback, syncState } = useProgressContext()
+  const { records, setStatus, saveDraft, saveFeedback, markMastered, confirmReview, resetToLearning, syncState } = useProgressContext()
   const [searchParams] = useSearchParams()
   const requestedWord = searchParams.get('word')
   const initialWord = getRequestedWord(words, requestedWord)
@@ -90,9 +91,15 @@ export default function Study() {
     // Build a lightweight view of records with the just-applied status override
     // so getNextWord can immediately see the new status without waiting for the
     // async setRecords update to propagate.
+    const override = { ...(records[currentWord] || {}), status: newStatus }
+    if (newStatus === 'mastered') {
+      override.nextReviewAt = computeNextReviewAt(0)
+    } else if (newStatus === 'learning') {
+      override.nextReviewAt = null
+    }
     const recordsWithOverride = {
       ...records,
-      [currentWord]: { ...(records[currentWord] || {}), status: newStatus },
+      [currentWord]: override,
     }
     const next = getNextWord(words, recordsWithOverride, recentWords, currentWord)
     setCurrent(next)
@@ -145,19 +152,35 @@ export default function Study() {
   }
 
   function handleAgain() {
-    setStatus(current.word, 'learning')
+    const isMasteredReview = currentRecord.status === 'mastered'
+    if (isMasteredReview) {
+      resetToLearning(current.word)
+    } else {
+      setStatus(current.word, 'learning')
+    }
     advance(current.word, 'learning')
   }
 
   function handleMastered() {
-    setStatus(current.word, 'mastered')
+    const isMasteredReview = currentRecord.status === 'mastered'
+    if (isMasteredReview) {
+      confirmReview(current.word)
+    } else {
+      markMastered(current.word)
+    }
     advance(current.word, 'mastered')
   }
 
   if (!current) {
+    const nextReview = getEarliestReviewDate(words, records)
     return (
       <div className="study-empty">
-        <p>No words available.</p>
+        <p>All caught up for now.</p>
+        {nextReview && (
+          <p className="body-sm" style={{ color: 'var(--wc-muted)', marginTop: 'var(--space-2)' }}>
+            Next review: {nextReview.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+          </p>
+        )}
       </div>
     )
   }

@@ -2,11 +2,19 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
+	"log"
+	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
 )
+
+//go:embed migrations/*.sql
+var migrationFS embed.FS
 
 // User represents an authenticated user account.
 type User struct {
@@ -17,17 +25,19 @@ type User struct {
 
 // WordRecord holds everything the system tracks per word per user.
 type WordRecord struct {
-	Word                string    `json:"word"`
-	Status              string    `json:"status"`
-	Draft               string    `json:"draft"`
-	LastCheckedSentence string    `json:"last_checked_sentence"`
-	FeedbackAcceptable  *bool     `json:"feedback_acceptable"`
-	FeedbackGrammar     string    `json:"feedback_grammar"`
-	FeedbackNaturalness string    `json:"feedback_naturalness"`
-	FeedbackRevision    string    `json:"feedback_revision"`
-	Attempts            int       `json:"attempts"`
-	AcceptedAttempts    int       `json:"accepted_attempts"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	Word                string     `json:"word"`
+	Status              string     `json:"status"`
+	Draft               string     `json:"draft"`
+	LastCheckedSentence string     `json:"last_checked_sentence"`
+	FeedbackAcceptable  *bool      `json:"feedback_acceptable"`
+	FeedbackGrammar     string     `json:"feedback_grammar"`
+	FeedbackNaturalness string     `json:"feedback_naturalness"`
+	FeedbackRevision    string     `json:"feedback_revision"`
+	Attempts            int        `json:"attempts"`
+	AcceptedAttempts    int        `json:"accepted_attempts"`
+	UpdatedAt           time.Time  `json:"updated_at"`
+	ReviewCount         int        `json:"review_count"`
+	NextReviewAt        *time.Time `json:"next_review_at"`
 }
 
 // InitDB opens a PostgreSQL connection, runs the schema migrations, and returns the handle.
@@ -54,36 +64,66 @@ func InitDB(databaseURL string) (*sql.DB, error) {
 }
 
 func migrate(db *sql.DB) error {
-	schema := `
-	CREATE TABLE IF NOT EXISTS users (
-		id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		email         VARCHAR(255) UNIQUE NOT NULL,
-		password_hash VARCHAR(255) NOT NULL,
-		created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-	);
+	// Ensure the migrations tracking table exists.
+	if _, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version    VARCHAR(255) PRIMARY KEY,
+			applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)
+	`); err != nil {
+		return fmt.Errorf("create schema_migrations table: %w", err)
+	}
 
-	CREATE TABLE IF NOT EXISTS word_records (
-		id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		user_id               UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		word                  VARCHAR(100) NOT NULL,
-		status                VARCHAR(20)  NOT NULL DEFAULT 'new',
-		draft                 TEXT NOT NULL DEFAULT '',
-		last_checked_sentence TEXT NOT NULL DEFAULT '',
-		feedback_acceptable   BOOLEAN,
-		feedback_grammar      TEXT NOT NULL DEFAULT '',
-		feedback_naturalness  TEXT NOT NULL DEFAULT '',
-		feedback_revision     TEXT NOT NULL DEFAULT '',
-		attempts              INTEGER NOT NULL DEFAULT 0,
-		accepted_attempts     INTEGER NOT NULL DEFAULT 0,
-		updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-		UNIQUE(user_id, word)
-	);
+	// Read all .sql files from the embedded migrations directory.
+	entries, err := migrationFS.ReadDir("migrations")
+	if err != nil {
+		return fmt.Errorf("read migrations dir: %w", err)
+	}
 
-	CREATE INDEX IF NOT EXISTS idx_word_records_user_id ON word_records(user_id);
-	CREATE INDEX IF NOT EXISTS idx_word_records_status  ON word_records(user_id, status);
-	`
-	_, err := db.Exec(schema)
-	return err
+	var files []string
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".sql") {
+			files = append(files, e.Name())
+		}
+	}
+	sort.Strings(files)
+
+	for _, name := range files {
+		version := strings.TrimSuffix(name, filepath.Ext(name))
+
+		// Check if this migration has already been applied.
+		var exists bool
+		if err := db.QueryRow(
+			`SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)`,
+			version,
+		).Scan(&exists); err != nil {
+			return fmt.Errorf("check migration %s: %w", version, err)
+		}
+		if exists {
+			continue
+		}
+
+		// Read and execute the migration.
+		content, err := migrationFS.ReadFile("migrations/" + name)
+		if err != nil {
+			return fmt.Errorf("read migration %s: %w", name, err)
+		}
+
+		if _, err := db.Exec(string(content)); err != nil {
+			return fmt.Errorf("apply migration %s: %w", name, err)
+		}
+
+		if _, err := db.Exec(
+			`INSERT INTO schema_migrations (version) VALUES ($1)`,
+			version,
+		); err != nil {
+			return fmt.Errorf("record migration %s: %w", version, err)
+		}
+
+		log.Printf("applied migration: %s", version)
+	}
+
+	return nil
 }
 
 // ── User queries ──────────────────────────────────────────────────────────────
@@ -124,7 +164,8 @@ func getAllRecords(db *sql.DB, userID string) (map[string]WordRecord, error) {
 	rows, err := db.Query(`
 		SELECT word, status, draft, last_checked_sentence,
 		       feedback_acceptable, feedback_grammar, feedback_naturalness, feedback_revision,
-		       attempts, accepted_attempts, updated_at
+		       attempts, accepted_attempts, updated_at,
+		       review_count, next_review_at
 		FROM word_records
 		WHERE user_id = $1
 		ORDER BY updated_at DESC
@@ -141,6 +182,7 @@ func getAllRecords(db *sql.DB, userID string) (map[string]WordRecord, error) {
 			&r.Word, &r.Status, &r.Draft, &r.LastCheckedSentence,
 			&r.FeedbackAcceptable, &r.FeedbackGrammar, &r.FeedbackNaturalness, &r.FeedbackRevision,
 			&r.Attempts, &r.AcceptedAttempts, &r.UpdatedAt,
+			&r.ReviewCount, &r.NextReviewAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan record: %w", err)
 		}
@@ -156,8 +198,9 @@ func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, er
 		INSERT INTO word_records
 			(user_id, word, status, draft, last_checked_sentence,
 			 feedback_acceptable, feedback_grammar, feedback_naturalness, feedback_revision,
-			 attempts, accepted_attempts, updated_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
+			 attempts, accepted_attempts, updated_at,
+			 review_count, next_review_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW(),$12,$13)
 		ON CONFLICT (user_id, word) DO UPDATE SET
 			status                = EXCLUDED.status,
 			draft                 = EXCLUDED.draft,
@@ -168,18 +211,23 @@ func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, er
 			feedback_revision     = EXCLUDED.feedback_revision,
 			attempts              = EXCLUDED.attempts,
 			accepted_attempts     = EXCLUDED.accepted_attempts,
+			review_count          = EXCLUDED.review_count,
+			next_review_at        = EXCLUDED.next_review_at,
 			updated_at            = NOW()
 		RETURNING word, status, draft, last_checked_sentence,
 		          feedback_acceptable, feedback_grammar, feedback_naturalness, feedback_revision,
-		          attempts, accepted_attempts, updated_at
+		          attempts, accepted_attempts, updated_at,
+		          review_count, next_review_at
 	`,
 		userID, word, r.Status, r.Draft, r.LastCheckedSentence,
 		r.FeedbackAcceptable, r.FeedbackGrammar, r.FeedbackNaturalness, r.FeedbackRevision,
 		r.Attempts, r.AcceptedAttempts,
+		r.ReviewCount, r.NextReviewAt,
 	).Scan(
 		&out.Word, &out.Status, &out.Draft, &out.LastCheckedSentence,
 		&out.FeedbackAcceptable, &out.FeedbackGrammar, &out.FeedbackNaturalness, &out.FeedbackRevision,
 		&out.Attempts, &out.AcceptedAttempts, &out.UpdatedAt,
+		&out.ReviewCount, &out.NextReviewAt,
 	)
 	if err != nil {
 		return WordRecord{}, fmt.Errorf("upsert record: %w", err)
@@ -192,7 +240,8 @@ func getAllRecordsSlice(db *sql.DB, userID string) ([]WordRecord, error) {
 	rows, err := db.Query(`
 		SELECT word, status, draft, last_checked_sentence,
 		       feedback_acceptable, feedback_grammar, feedback_naturalness, feedback_revision,
-		       attempts, accepted_attempts, updated_at
+		       attempts, accepted_attempts, updated_at,
+		       review_count, next_review_at
 		FROM word_records
 		WHERE user_id = $1
 		ORDER BY word ASC
@@ -209,6 +258,7 @@ func getAllRecordsSlice(db *sql.DB, userID string) ([]WordRecord, error) {
 			&r.Word, &r.Status, &r.Draft, &r.LastCheckedSentence,
 			&r.FeedbackAcceptable, &r.FeedbackGrammar, &r.FeedbackNaturalness, &r.FeedbackRevision,
 			&r.Attempts, &r.AcceptedAttempts, &r.UpdatedAt,
+			&r.ReviewCount, &r.NextReviewAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan record: %w", err)
 		}

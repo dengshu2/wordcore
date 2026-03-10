@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { fetchRecords, upsertRecord, getToken } from '../services/api'
 
+// ── Spaced-review intervals (in days) ─────────────────────────────────────────
+
+export const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30, 60]
+
+export function computeNextReviewAt(reviewCount) {
+  const idx = Math.min(reviewCount, REVIEW_INTERVALS_DAYS.length - 1)
+  const ms = REVIEW_INTERVALS_DAYS[idx] * 86400000
+  return new Date(Date.now() + ms).toISOString()
+}
+
 // ── Normalization ─────────────────────────────────────────────────────────────
 
 function normalizeFeedback(feedback = {}) {
@@ -27,6 +37,10 @@ function normalizeRecord(record = {}) {
     acceptedAttempts: Number.isFinite(record?.acceptedAttempts ?? record?.accepted_attempts)
       ? (record?.acceptedAttempts ?? record?.accepted_attempts)
       : 0,
+    reviewCount: Number.isFinite(record?.reviewCount ?? record?.review_count)
+      ? (record?.reviewCount ?? record?.review_count)
+      : 0,
+    nextReviewAt: record?.nextReviewAt || record?.next_review_at || null,
     updatedAt: String(record?.updatedAt || record?.updated_at || ''),
   }
 }
@@ -46,6 +60,8 @@ function fromAPIRecord(apiRecord) {
     },
     attempts: apiRecord.attempts,
     acceptedAttempts: apiRecord.accepted_attempts,
+    reviewCount: apiRecord.review_count,
+    nextReviewAt: apiRecord.next_review_at,
     updatedAt: apiRecord.updated_at,
   })
 }
@@ -64,6 +80,8 @@ function toAPIRecord(record) {
     feedback_revision: f.suggestedRevision,
     attempts: record.attempts,
     accepted_attempts: record.acceptedAttempts,
+    review_count: record.reviewCount,
+    next_review_at: record.nextReviewAt,
   }
 }
 
@@ -142,6 +160,39 @@ export default function useProgress() {
     }))
   }, [updateRecord])
 
+  const markMastered = useCallback((word) => {
+    updateRecord(word, record => ({
+      ...record,
+      status: 'mastered',
+      reviewCount: 0,
+      nextReviewAt: computeNextReviewAt(0),
+      updatedAt: new Date().toISOString(),
+    }))
+  }, [updateRecord])
+
+  const confirmReview = useCallback((word) => {
+    updateRecord(word, record => {
+      const newCount = record.reviewCount + 1
+      return {
+        ...record,
+        reviewCount: newCount,
+        nextReviewAt: computeNextReviewAt(newCount),
+        updatedAt: new Date().toISOString(),
+      }
+    })
+  }, [updateRecord])
+
+  const resetToLearning = useCallback((word) => {
+    updateRecord(word, record => ({
+      ...record,
+      status: 'learning',
+      reviewCount: 0,
+      nextReviewAt: null,
+      acceptedAttempts: 0,
+      updatedAt: new Date().toISOString(),
+    }))
+  }, [updateRecord])
+
   const progress = useMemo(
     () =>
       Object.fromEntries(
@@ -167,5 +218,5 @@ export default function useProgress() {
     [records]
   )
 
-  return { records, progress, drafts, setStatus, saveDraft, saveFeedback, masteredCount, syncState }
+  return { records, progress, drafts, setStatus, saveDraft, saveFeedback, markMastered, confirmReview, resetToLearning, masteredCount, syncState }
 }

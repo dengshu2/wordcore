@@ -83,6 +83,7 @@ func (h *handler) handleExportCSV(w http.ResponseWriter, r *http.Request) {
 		"word", "status", "draft", "last_checked_sentence",
 		"feedback_acceptable", "feedback_grammar", "feedback_naturalness", "feedback_revision",
 		"attempts", "accepted_attempts", "updated_at",
+		"review_count", "next_review_at",
 	})
 
 	for _, rec := range records {
@@ -94,12 +95,18 @@ func (h *handler) handleExportCSV(w http.ResponseWriter, r *http.Request) {
 				acceptable = "false"
 			}
 		}
+		nextReview := ""
+		if rec.NextReviewAt != nil {
+			nextReview = rec.NextReviewAt.Format(time.RFC3339)
+		}
 		cw.Write([]string{
 			rec.Word, rec.Status, rec.Draft, rec.LastCheckedSentence,
 			acceptable, rec.FeedbackGrammar, rec.FeedbackNaturalness, rec.FeedbackRevision,
 			fmt.Sprintf("%d", rec.Attempts),
 			fmt.Sprintf("%d", rec.AcceptedAttempts),
 			rec.UpdatedAt.Format(time.RFC3339),
+			fmt.Sprintf("%d", rec.ReviewCount),
+			nextReview,
 		})
 	}
 }
