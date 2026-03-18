@@ -137,6 +137,22 @@ describe('Study', () => {
     expect(checkSentence).toHaveBeenCalledTimes(1)
   })
 
+  it('supports Cmd/Ctrl+Shift+Enter as a mastered shortcut', async () => {
+    mockRecords = {
+      abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },
+      able: { acceptedAttempts: 2, lastCheckedSentence: '' },
+    }
+    renderStudy()
+    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
+    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
+    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+    await screen.findByText(/suggested:/i)
+
+    // Now masteredReady should be true (acceptedAttempts=3, session accepted, feedback acceptable)
+    fireEvent.keyDown(getSentenceInput(), { key: 'Enter', ctrlKey: true, shiftKey: true })
+    expect(mockMarkMastered).toHaveBeenCalledWith(shown.word)
+  })
+
   it('calls markMastered when Mastered is clicked', async () => {
     mockRecords = {
       abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },

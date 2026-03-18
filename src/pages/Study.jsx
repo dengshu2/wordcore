@@ -199,6 +199,11 @@ export default function Study() {
   }
 
   function handleSentenceKeyDown(e) {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'Enter' && masteredReady) {
+      e.preventDefault()
+      handleMastered()
+      return
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canCompare && !isChecking) {
       e.preventDefault()
       handleSelfCheck()
@@ -384,6 +389,11 @@ function ActionRow({ masteredReady, onAgain, onMastered, isAcceptable }) {
         <button className="btn btn--outline flex-1" onClick={onAgain}>Next</button>
         <button className="btn btn--primary flex-1" onClick={onMastered} disabled={!masteredReady}>Mastered</button>
       </div>
+      {masteredReady && (
+        <p className="body-xs" style={{ color: 'var(--wc-muted)', marginTop: 'var(--space-1)', textAlign: 'right' }}>
+          Cmd/Ctrl + Shift + Enter
+        </p>
+      )}
       <p className="study-action-hint">
         {masteredReady
           ? 'Mark as mastered, or move to the next word.'
