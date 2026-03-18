@@ -38,7 +38,7 @@
   --r-pill: 9999px;
 
   /* Typography */
-  --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Shadow */
@@ -58,7 +58,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 110%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -129,6 +129,11 @@ svg {
 
 .label--accent {
   color: var(--wc-accent);
+}
+
+.label--block {
+  display: block;
+  margin-bottom: var(--space-2);
 }
 
 .display {
@@ -611,8 +616,8 @@ svg {
   padding: var(--space-8) var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  max-width: 440px;
+  gap: var(--space-8);
+  max-width: 520px;
 }
 
 @media (min-width: 1024px) {
@@ -695,31 +700,46 @@ svg {
 
 /* ─── Study page ─────────────────────────────────────────────────────────── */
 
-/*
-  Single centered column at all sizes.
-  Vertically centered within the viewport for a calm, focused feel.
-*/
-
 .study-layout {
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  max-width: 620px;
+  gap: var(--space-5);
+  max-width: 680px;
   margin: 0 auto;
-  min-height: calc(100dvh - var(--space-10) * 2);
-  justify-content: center;
 }
 
-/* Wrappers are transparent — keep flat single-column flow */
-.study-word-section,
+.study-word-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--wc-white-glass);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--r-xl);
+  animation: studyCardIn 400ms ease both;
+}
+
 .study-input-section {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+@keyframes studyCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 1024px) {
   .study-layout {
-    padding: var(--space-10) var(--space-8);
+    padding: var(--space-8) var(--space-8) var(--space-10);
   }
 }
 
@@ -780,6 +800,10 @@ svg {
   color: var(--wc-error);
 }
 
+.study-hint--hidden {
+  visibility: hidden;
+}
+
 .study-submit-row {
   display: flex;
   justify-content: space-between;
@@ -809,6 +833,18 @@ svg {
 
 .study-result__body {
   margin-top: var(--space-4);
+  animation: resultReveal 300ms ease both;
+}
+
+@keyframes resultReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .study-feedback {
@@ -1135,13 +1171,13 @@ svg {
   }
 }
 
-/* Soft top gradient overlay */
+/* Soft top gradient overlay — subtle to avoid washing out content */
 .main-pane::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
-  height: 80px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.18), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -1226,4 +1262,86 @@ svg {
   background: var(--wc-error-bg);
   border-color: rgba(154, 90, 31, 0.16);
   color: var(--wc-error);
+}
+
+/* ─── Skip-to-content link ───────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--r-md);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--wc-accent);
+  z-index: 100;
+  transition: top var(--dur);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+/* ─── Login page ─────────────────────────────────────────────────────────── */
+.login-layout {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--wc-shadow);
+  padding: var(--space-8);
+}
+
+.login-brand {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.login-brand__name {
+  font-family: var(--font-ui);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--wc-text);
+}
+
+.login-brand__sub {
+  margin-top: var(--space-1);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--wc-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-footer {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--wc-muted);
+}
+
+.login-toggle {
+  font-weight: 600;
+  color: var(--wc-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-family: var(--font-ui);
+  font-size: inherit;
 }

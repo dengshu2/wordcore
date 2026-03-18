@@ -72,6 +72,9 @@ export default function Nav() {
             {label}
           </NavLink>
         ))}
+        <button className="tab-link" onClick={handleLogout}>
+          Sign out
+        </button>
       </nav>
     </>
   )

@@ -215,7 +215,7 @@ export default function Study() {
     <div className="study-layout">
 
       {/* ── Left col: word info ───────────────────────────────────── */}
-      <div className="study-word-section">
+      <div className="study-word-section" key={current.word}>
         <div className="study-word-row">
           <span className="study-word">{current.word}</span>
           <span className="badge badge--accent">{current.pos}</span>
@@ -240,6 +240,7 @@ export default function Study() {
           <textarea
             id="study-sentence"
             className="input textarea"
+            aria-label={`Write a sentence using the word "${current.word}"`}
             value={sentence}
             onChange={e => {
               const value = e.target.value
@@ -250,11 +251,9 @@ export default function Study() {
             placeholder={`Write one natural sentence using "${current.word}"…`}
           />
 
-          {hasSentence && !hasTargetWord && (
-            <p className="study-hint--warn">
-              Include the word "{current.word}" in your sentence before self-checking.
-            </p>
-          )}
+          <p className={`study-hint--warn${hasSentence && !hasTargetWord ? '' : ' study-hint--hidden'}`} aria-hidden={!hasSentence || hasTargetWord}>
+            Include the word &quot;{current.word}&quot; in your sentence before self-checking.
+          </p>
           {checkError && <p className="study-hint--warn">{checkError}</p>}
 
           <div className="study-submit-row">

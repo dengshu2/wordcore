@@ -39,7 +39,7 @@ function AppShell() {
   return (
     <div className="app-shell">
       <Nav />
-      <main className="main-pane">
+      <main className="main-pane" id="main-content">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Navigate to="/study" replace />} />
