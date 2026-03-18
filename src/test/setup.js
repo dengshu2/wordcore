@@ -16,3 +16,7 @@ if (typeof globalThis.jsdom !== 'undefined') {
     configurable: true,
   })
 }
+
+// jsdom does not implement scrollIntoView — stub it to prevent
+// "not a function" errors when components call it under test.
+Element.prototype.scrollIntoView ??= () => {}

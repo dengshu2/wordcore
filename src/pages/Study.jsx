@@ -48,6 +48,7 @@ export default function Study() {
   // back to the old word during the same render cycle where advance()
   // has already picked the next word.
   const advancingRef = useRef(false)
+  const resultRef = useRef(null)
 
   const currentRecord = current ? records[current.word] || {} : {}
 
@@ -177,6 +178,9 @@ export default function Study() {
       saveFeedback(current.word, result, sentence)
       setRevealed(true)
       setResultOpen(true)
+      requestAnimationFrame(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
       if (result.is_acceptable) {
         setSessionAcceptedSentences(prev => new Set([...prev, sentence.trim()]))
       }
@@ -293,7 +297,7 @@ export default function Study() {
         </div>
 
         {(hasResult || isChecking) && (
-          <div className="study-result">
+          <div className="study-result" ref={resultRef}>
             <button className="study-result__toggle" onClick={() => setResultOpen(p => !p)} aria-expanded={resultOpen}>
               <span className="label">Result</span>
               <span className="study-result__arrow" aria-hidden="true">{resultOpen ? '▲' : '▼'}</span>

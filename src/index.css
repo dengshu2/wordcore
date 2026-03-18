@@ -61,6 +61,7 @@ html {
   font-size: 110%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -959,6 +960,7 @@ svg {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  overscroll-behavior-y: contain;
 }
 
 .words-empty {
@@ -1161,7 +1163,11 @@ svg {
   border-radius: var(--r-xl);
   box-shadow: var(--wc-shadow);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Prevent scroll chaining — stops mobile overscroll from
+     propagating to <body> and jumping the viewport to the top */
+  overscroll-behavior-y: contain;
 }
 
 @media (min-width: 1024px) {
