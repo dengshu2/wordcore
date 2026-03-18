@@ -1,10 +1,12 @@
 import { createContext, useContext } from 'react'
 import useProgress from '../hooks/useProgress'
+import { useAuth } from './AuthContext'
 
 const ProgressContext = createContext(null)
 
 export function ProgressProvider({ children }) {
-    const progress = useProgress()
+    const { user } = useAuth()
+    const progress = useProgress(user)
     return (
         <ProgressContext.Provider value={progress}>
             {children}

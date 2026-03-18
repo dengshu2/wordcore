@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
@@ -73,6 +73,32 @@ export default function Study() {
     setResultOpen(false)
     setSessionAcceptedSentences(new Set())
   }, [requestedWord, current?.word, records])
+
+  // Recalculate the current word once records finish loading.
+  // Without this, useState initialises `current` before records exist,
+  // so `getNextWord` sees an empty map and always picks the first unseen
+  // word ("the") regardless of actual progress.
+  const prevSyncState = useRef(syncState)
+
+  useEffect(() => {
+    const wasLoading = prevSyncState.current === 'loading'
+    prevSyncState.current = syncState
+
+    if (syncState !== 'idle' || !wasLoading) return
+
+    const targetWord = getRequestedWord(words, requestedWord)
+    const next = targetWord || getNextWord(words, records, [], null)
+
+    setCurrent(next)
+    setSentence(next ? records[next.word]?.draft || '' : '')
+    setRecentWords(next ? [next.word] : [])
+    setRevealed(false)
+    setFeedback(null)
+    setCheckError('')
+    setIsChecking(false)
+    setResultOpen(Boolean(getStoredFeedback(next ? records[next.word] || {} : {})))
+    setSessionAcceptedSentences(new Set())
+  }, [syncState, records, requestedWord])
 
   // While the initial fetch is in flight show skeleton placeholders — all
   // hooks above must run unconditionally before this early return.

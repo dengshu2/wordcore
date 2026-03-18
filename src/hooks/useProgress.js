@@ -87,15 +87,19 @@ function toAPIRecord(record) {
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-export default function useProgress() {
+export default function useProgress(user) {
   const [records, setRecords] = useState({})
   const [syncState, setSyncState] = useState('idle') // 'idle' | 'loading' | 'error'
   // Track pending upserts to debounce and batch per word
   const pendingRef = useRef({})
 
-  // Load all records from the backend on mount (only when logged in)
+  // Load records whenever user changes (login → fetch, logout → clear)
   useEffect(() => {
-    if (!getToken()) return
+    if (!user || !getToken()) {
+      setRecords({})
+      setSyncState('idle')
+      return
+    }
 
     setSyncState('loading')
     fetchRecords()
@@ -110,7 +114,7 @@ export default function useProgress() {
       .catch(() => {
         setSyncState('error')
       })
-  }, [])
+  }, [user])
 
   // Debounced API sync for a single word
   const syncWord = useCallback((word, record) => {
