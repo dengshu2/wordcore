@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
 import { getNextWord, getEarliestReviewDate, includesTargetWord } from './studySession'
@@ -28,7 +28,8 @@ function getRequestedWord(wordList, requestedWord) {
 
 export default function Study() {
   const { records, setStatus, saveDraft, saveFeedback, markMastered, confirmReview, resetToLearning, syncState } = useProgressContext()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const requestedWord = searchParams.get('word')
   const initialWord = getRequestedWord(words, requestedWord)
   const initialCurrent = initialWord || getNextWord(words, records, [], null)
@@ -42,6 +43,11 @@ export default function Study() {
   const [isChecking, setIsChecking] = useState(false)
   const [resultOpen, setResultOpen] = useState(() => Boolean(getStoredFeedback(initialCurrent ? records[initialCurrent.word] || {} : {})))
   const [sessionAcceptedSentences, setSessionAcceptedSentences] = useState(() => new Set())
+
+  // Gate to prevent the requestedWord useEffect from snapping current
+  // back to the old word during the same render cycle where advance()
+  // has already picked the next word.
+  const advancingRef = useRef(false)
 
   const currentRecord = current ? records[current.word] || {} : {}
 
@@ -61,6 +67,14 @@ export default function Study() {
   const hasResult = (revealed && feedback) || storedFeedback
 
   useEffect(() => {
+    // Skip if advance() just fired — it already set the next word and
+    // is about to clear the URL param. Without this gate, a records
+    // update (from markMastered / setStatus) triggers this effect
+    // before navigate() clears ?word, snapping current back.
+    if (advancingRef.current) {
+      advancingRef.current = false
+      return
+    }
     const targetWord = getRequestedWord(words, requestedWord)
     if (!targetWord || current?.word === targetWord.word) return
     setCurrent(targetWord)
@@ -128,6 +142,16 @@ export default function Study() {
       [currentWord]: override,
     }
     const next = getNextWord(words, recordsWithOverride, recentWords, currentWord)
+
+    // If we arrived via ?word=X, clear the search param so the
+    // requestedWord useEffect won't snap us back to the same word.
+    // Set the gate BEFORE navigate so the records-triggered effect
+    // that fires in the same render cycle will bail out.
+    if (requestedWord) {
+      advancingRef.current = true
+      navigate('/study', { replace: true })
+    }
+
     setCurrent(next)
     setRecentWords(prev => (next ? [...prev, next.word] : prev))
     setSentence(next ? records[next.word]?.draft || '' : '')

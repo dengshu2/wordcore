@@ -1188,6 +1188,7 @@ svg {
   inset: auto 0 0 0;
   z-index: 30;
   display: flex;
+  align-items: stretch;
   padding: var(--space-2) var(--space-3) max(var(--space-2), env(safe-area-inset-bottom));
   background: rgba(255, 250, 241, 0.95);
   border-top: 1px solid var(--wc-border);
@@ -1227,6 +1228,32 @@ svg {
   font-weight: 700;
   letter-spacing: 0.2em;
   opacity: 0.6;
+}
+
+.tab-bar__logout {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-4);
+  margin-left: var(--space-2);
+  border-left: 1px solid var(--wc-border);
+  border-radius: 0;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--wc-warm);
+  transition: opacity var(--dur);
+  white-space: nowrap;
+}
+
+.tab-bar__logout:hover {
+  opacity: 0.72;
+}
+
+.tab-bar__logout:active {
+  opacity: 0.5;
 }
 
 /* ─── Page header ────────────────────────────────────────────────────────── */
