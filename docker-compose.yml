@@ -3,6 +3,8 @@ services:
     build:
       context: .         # project root — gives Dockerfile access to both src/ and api/
       dockerfile: api/Dockerfile
+      args:
+        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID}
     container_name: wordcore
     restart: unless-stopped
     ports:

@@ -13,6 +13,8 @@ RUN npm ci --prefer-offline
 COPY index.html vite.config.js eslint.config.js ./
 COPY public ./public
 COPY src ./src
+
+ARG VITE_UMAMI_WEBSITE_ID
 RUN npm run build
 
 # ── Stage 2: Build Go backend ─────────────────────────────────────────────────
