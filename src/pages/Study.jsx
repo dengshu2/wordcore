@@ -49,6 +49,7 @@ export default function Study() {
   // has already picked the next word.
   const advancingRef = useRef(false)
   const resultRef = useRef(null)
+  const sentenceRef = useRef(null)
 
   const currentRecord = current ? records[current.word] || {} : {}
 
@@ -270,19 +271,36 @@ export default function Study() {
       {/* ── Right col: input + result ─────────────────────────────── */}
       <div className="study-input-section">
         <div className="study-input-area">
-          <textarea
-            id="study-sentence"
-            className="input textarea"
-            aria-label={`Write a sentence using the word "${current.word}"`}
-            value={sentence}
-            onChange={e => {
-              const value = e.target.value
-              setSentence(value)
-              saveDraft(current.word, value)
-            }}
-            onKeyDown={handleSentenceKeyDown}
-            placeholder={`Write one natural sentence using "${current.word}"…`}
-          />
+          <div className="study-sentence-wrap">
+            <textarea
+              id="study-sentence"
+              ref={sentenceRef}
+              className="input textarea study-sentence-input"
+              aria-label={`Write a sentence using the word "${current.word}"`}
+              value={sentence}
+              onChange={e => {
+                const value = e.target.value
+                setSentence(value)
+                saveDraft(current.word, value)
+              }}
+              onKeyDown={handleSentenceKeyDown}
+              placeholder={`Write one natural sentence using "${current.word}"…`}
+            />
+            {sentence && (
+              <button
+                type="button"
+                className="study-sentence-clear"
+                aria-label="Clear sentence"
+                onClick={() => {
+                  setSentence('')
+                  saveDraft(current.word, '')
+                  sentenceRef.current?.focus()
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
 
           <p className={`study-hint--warn${hasSentence && !hasTargetWord ? '' : ' study-hint--hidden'}`} aria-hidden={!hasSentence || hasTargetWord}>
             Include the word &quot;{current.word}&quot; in your sentence before self-checking.

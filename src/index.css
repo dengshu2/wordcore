@@ -795,6 +795,41 @@ svg {
   gap: var(--space-3);
 }
 
+.study-sentence-wrap {
+  position: relative;
+}
+
+.study-sentence-input {
+  padding-right: 44px;
+}
+
+.study-sentence-clear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wc-border);
+  border-radius: var(--r-pill);
+  background: var(--wc-white-glass);
+  color: var(--wc-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--dur), border-color var(--dur), background var(--dur);
+}
+
+.study-sentence-clear:hover,
+.study-sentence-clear:focus-visible {
+  color: var(--wc-text);
+  border-color: var(--wc-border-strong);
+  outline: none;
+}
+
 .study-hint--warn {
   font-family: var(--font-ui);
   font-size: 0.8125rem;
