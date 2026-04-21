@@ -61,12 +61,15 @@ html {
   font-size: 110%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-y: contain;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior-y: none;
 }
 
 body {
   min-width: 320px;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   font-family: var(--font-serif);
   font-size: 1rem;
   line-height: 1.6;
@@ -79,7 +82,8 @@ body {
 }
 
 #root {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 button,
@@ -507,11 +511,11 @@ svg {
 /* ─── App shell ──────────────────────────────────────────────────────────── */
 .app-shell {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--space-5);
   max-width: 1440px;
   margin: 0 auto;
-  min-height: 100dvh;
+  height: 100dvh;
   padding: var(--space-4);
 }
 
@@ -936,23 +940,21 @@ svg {
 
 /* ─── WordList page ──────────────────────────────────────────────────────── */
 .words-shell {
-  position: absolute;
-  inset: 0 0 72px 0;
   display: flex;
   flex-direction: column;
-}
-
-@media (min-width: 1024px) {
-  .words-shell {
-    inset: 0;
-  }
+  min-height: 100%;
 }
 
 .words-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   flex-shrink: 0;
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--wc-border);
-  background: rgba(255, 250, 241, 0.88);
+  background: rgba(255, 250, 241, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -998,9 +1000,7 @@ svg {
 
 .words-list {
   flex: 1;
-  overflow-y: auto;
   min-height: 0;
-  overscroll-behavior-y: contain;
 }
 
 .words-empty {
@@ -1012,6 +1012,9 @@ svg {
 }
 
 .words-pagination {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1019,7 +1022,9 @@ svg {
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--wc-border);
-  background: rgba(255, 250, 241, 0.88);
+  background: rgba(255, 250, 241, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .words-pagination__info {
@@ -1195,7 +1200,7 @@ svg {
 .main-pane {
   flex: 1;
   min-width: 0;
-  min-height: 100dvh;
+  min-height: 0;
   /* Extra bottom padding on mobile for tab bar */
   padding-bottom: 72px;
   background: var(--wc-surface);
@@ -1205,14 +1210,14 @@ svg {
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
-  /* Prevent scroll chaining — stops mobile overscroll from
-     propagating to <body> and jumping the viewport to the top */
+  /* Single scroll container for the app — prevents nested-scroll
+     bounce-to-top behavior on iOS Safari. */
   overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 1024px) {
   .main-pane {
-    min-height: calc(100dvh - var(--space-10));
     padding-bottom: 0;
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/wordBank'
@@ -74,7 +74,11 @@ export default function WordList() {
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('weak')
   const [page, setPage] = useState(1)
-  const parentRef = useRef(null)
+  const [scrollEl, setScrollEl] = useState(null)
+
+  useLayoutEffect(() => {
+    setScrollEl(document.getElementById('main-content'))
+  }, [])
 
   useEffect(() => { document.title = 'WordCore — Words' }, [])
 
@@ -119,7 +123,7 @@ export default function WordList() {
 
   const virtualizer = useVirtualizer({
     count: paged.length,
-    getScrollElement: () => parentRef.current,
+    getScrollElement: () => scrollEl,
     estimateSize: () => ROW_HEIGHT,
     overscan: 10,
   })
@@ -128,7 +132,7 @@ export default function WordList() {
 
   function goPage(n) {
     setPage(n)
-    parentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -182,7 +186,7 @@ export default function WordList() {
       </div>
 
       {/* ── List ─────────────────────────────────────────────────────── */}
-      <div ref={parentRef} className="words-list">
+      <div className="words-list">
         {filtered.length === 0 ? (
           <div className="words-empty">No words match.</div>
         ) : (
