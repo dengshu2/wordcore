@@ -22,7 +22,52 @@ function normalizeFeedback(feedback = {}) {
   }
 }
 
+export function normalizeSentenceKey(sentence = '') {
+  return String(sentence).trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+function normalizeAttempt(attempt = {}) {
+  const feedback = normalizeFeedback({
+    grammarFeedback: attempt.feedbackGrammar ?? attempt.feedback_grammar,
+    naturalnessFeedback: attempt.feedbackNaturalness ?? attempt.feedback_naturalness,
+    suggestedRevision: attempt.feedbackRevision ?? attempt.feedback_revision,
+  })
+  const sentence = String(attempt.sentence || '')
+  return {
+    id: attempt.id || '',
+    sentence,
+    normalizedSentence: String(attempt.normalizedSentence || attempt.normalized_sentence || normalizeSentenceKey(sentence)),
+    isAcceptable: Boolean(attempt.isAcceptable ?? attempt.is_acceptable),
+    feedbackGrammar: feedback.grammarFeedback,
+    feedbackNaturalness: feedback.naturalnessFeedback,
+    feedbackRevision: feedback.suggestedRevision,
+    createdAt: String(attempt.createdAt || attempt.created_at || new Date().toISOString()),
+  }
+}
+
+function normalizeAttempts(attempts = []) {
+  const bySentence = new Map()
+  for (const attempt of attempts) {
+    const normalized = normalizeAttempt(attempt)
+    if (!normalized.sentence.trim()) continue
+    if (!bySentence.has(normalized.normalizedSentence)) {
+      bySentence.set(normalized.normalizedSentence, normalized)
+    }
+  }
+  return Array.from(bySentence.values())
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+function countAcceptedAttempts(sentenceAttempts = []) {
+  return sentenceAttempts.filter(attempt => attempt.isAcceptable).length
+}
+
 function normalizeRecord(record = {}) {
+  const sentenceAttempts = normalizeAttempts(record?.sentenceAttempts || record?.sentence_attempts || [])
+  const fallbackAttempts = Number.isFinite(record?.attempts) ? record.attempts : 0
+  const fallbackAcceptedAttempts = Number.isFinite(record?.acceptedAttempts ?? record?.accepted_attempts)
+    ? (record?.acceptedAttempts ?? record?.accepted_attempts)
+    : 0
   return {
     status: ['mastered', 'learning', 'new'].includes(record?.status) ? record.status : 'new',
     draft: String(record?.draft || ''),
@@ -33,10 +78,9 @@ function normalizeRecord(record = {}) {
       naturalnessFeedback: record?.feedback_naturalness,
       suggestedRevision: record?.feedback_revision,
     }),
-    attempts: Number.isFinite(record?.attempts) ? record.attempts : 0,
-    acceptedAttempts: Number.isFinite(record?.acceptedAttempts ?? record?.accepted_attempts)
-      ? (record?.acceptedAttempts ?? record?.accepted_attempts)
-      : 0,
+    sentenceAttempts,
+    attempts: sentenceAttempts.length || fallbackAttempts,
+    acceptedAttempts: sentenceAttempts.length ? countAcceptedAttempts(sentenceAttempts) : fallbackAcceptedAttempts,
     reviewCount: Number.isFinite(record?.reviewCount ?? record?.review_count)
       ? (record?.reviewCount ?? record?.review_count)
       : 0,
@@ -63,6 +107,7 @@ function fromAPIRecord(apiRecord) {
     reviewCount: apiRecord.review_count,
     nextReviewAt: apiRecord.next_review_at,
     updatedAt: apiRecord.updated_at,
+    sentenceAttempts: apiRecord.sentence_attempts,
   })
 }
 
@@ -82,6 +127,16 @@ function toAPIRecord(record) {
     accepted_attempts: record.acceptedAttempts,
     review_count: record.reviewCount,
     next_review_at: record.nextReviewAt,
+    sentence_attempts: (record.sentenceAttempts || []).map(attempt => ({
+      id: attempt.id || undefined,
+      sentence: attempt.sentence,
+      normalized_sentence: attempt.normalizedSentence || normalizeSentenceKey(attempt.sentence),
+      is_acceptable: Boolean(attempt.isAcceptable),
+      feedback_grammar: attempt.feedbackGrammar || '',
+      feedback_naturalness: attempt.feedbackNaturalness || '',
+      feedback_revision: attempt.feedbackRevision || '',
+      created_at: attempt.createdAt,
+    })),
   }
 }
 
@@ -155,12 +210,40 @@ export default function useProgress(user) {
     const normalized = normalizeFeedback(feedback)
     updateRecord(word, record => ({
       ...record,
-      status: record.status === 'new' ? 'learning' : record.status,
-      lastCheckedSentence: checkedSentence,
-      feedback: normalized,
-      attempts: record.attempts + 1,
-      acceptedAttempts: record.acceptedAttempts + (normalized.isAcceptable ? 1 : 0),
-      updatedAt: new Date().toISOString(),
+      ...(() => {
+        const now = new Date().toISOString()
+        const normalizedSentence = normalizeSentenceKey(checkedSentence)
+        const existingAccepted = record.sentenceAttempts.some(attempt =>
+          attempt.isAcceptable && attempt.normalizedSentence === normalizedSentence
+        )
+        const nextAttempt = normalizeAttempt({
+          sentence: checkedSentence,
+          normalizedSentence,
+          isAcceptable: normalized.isAcceptable && !existingAccepted,
+          feedbackGrammar: normalized.grammarFeedback,
+          feedbackNaturalness: normalized.naturalnessFeedback,
+          feedbackRevision: normalized.suggestedRevision,
+          createdAt: now,
+        })
+        const sentenceAttempts = existingAccepted
+          ? record.sentenceAttempts
+          : normalizeAttempts([nextAttempt, ...record.sentenceAttempts])
+        return {
+          status: record.status === 'new' ? 'learning' : record.status,
+          lastCheckedSentence: checkedSentence,
+          feedback: existingAccepted && normalized.isAcceptable
+            ? {
+              ...normalized,
+              isAcceptable: false,
+              naturalnessFeedback: 'This repeats an accepted sentence. Write a new example to make progress.',
+            }
+            : normalized,
+          sentenceAttempts,
+          attempts: sentenceAttempts.length,
+          acceptedAttempts: countAcceptedAttempts(sentenceAttempts),
+          updatedAt: now,
+        }
+      })(),
     }))
   }, [updateRecord])
 

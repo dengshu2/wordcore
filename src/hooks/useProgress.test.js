@@ -72,6 +72,52 @@ describe('useProgress', () => {
     expect(result.current.records.apple.feedback.suggestedRevision).toBe('I ate an apple after lunch.')
     expect(result.current.records.apple.attempts).toBe(1)
     expect(result.current.records.apple.acceptedAttempts).toBe(1)
+    expect(result.current.records.apple.sentenceAttempts).toHaveLength(1)
+    expect(result.current.records.apple.sentenceAttempts[0]).toMatchObject({
+      sentence: 'I ate apple after lunch.',
+      isAcceptable: true,
+    })
+  })
+
+  it('does not count a repeated accepted sentence twice', async () => {
+    const result = await mountHook()
+    act(() =>
+      result.current.saveFeedback('apple', {
+        is_acceptable: true,
+        suggested_revision: 'I ate an apple after lunch.',
+      }, 'I ate an apple after lunch.')
+    )
+    act(() =>
+      result.current.saveFeedback('apple', {
+        is_acceptable: true,
+        suggested_revision: 'I ate an apple after lunch.',
+      }, '  i ate an apple after lunch.  ')
+    )
+
+    expect(result.current.records.apple.attempts).toBe(1)
+    expect(result.current.records.apple.acceptedAttempts).toBe(1)
+    expect(result.current.records.apple.feedback.isAcceptable).toBe(false)
+    expect(result.current.records.apple.feedback.naturalnessFeedback).toMatch(/repeats an accepted sentence/i)
+  })
+
+  it('lets a previously rejected sentence become accepted later', async () => {
+    const result = await mountHook()
+    act(() =>
+      result.current.saveFeedback('apple', {
+        is_acceptable: false,
+        grammar_feedback: 'Missing article.',
+      }, 'I ate apple after lunch.')
+    )
+    act(() =>
+      result.current.saveFeedback('apple', {
+        is_acceptable: true,
+        suggested_revision: 'I ate an apple after lunch.',
+      }, 'I ate apple after lunch.')
+    )
+
+    expect(result.current.records.apple.attempts).toBe(1)
+    expect(result.current.records.apple.acceptedAttempts).toBe(1)
+    expect(result.current.records.apple.sentenceAttempts[0].isAcceptable).toBe(true)
   })
 
   it('returns a stable object shape for new words', async () => {

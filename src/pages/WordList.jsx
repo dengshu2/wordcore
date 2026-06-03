@@ -1,6 +1,5 @@
-import { useState, useMemo, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
 import { buildWordCsv } from './wordExport'
@@ -12,8 +11,8 @@ const SORTS = [
   { key: 'alpha', label: 'A-Z' },
 ]
 
-const ROW_HEIGHT = 88
 const PAGE_SIZE = 50
+const REQUIRED_ACCEPTED_ATTEMPTS = 3
 
 function isWeakRecord(record = {}) {
   return record.status === 'learning' && record.attempts > 0 && !record.feedback?.isAcceptable
@@ -30,6 +29,10 @@ function getFeedbackSummary(record = {}) {
   if (record.feedback?.grammarFeedback) return `Latest check: ${record.feedback.grammarFeedback}`
   if (record.feedback?.naturalnessFeedback) return `Latest check: ${record.feedback.naturalnessFeedback}`
   return null
+}
+
+function getAcceptedExamples(record = {}) {
+  return (record.sentenceAttempts || []).filter(attempt => attempt.isAcceptable)
 }
 
 function getUpdatedLabel(updatedAt) {
@@ -74,11 +77,6 @@ export default function WordList() {
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('weak')
   const [page, setPage] = useState(1)
-  const [scrollEl, setScrollEl] = useState(null)
-
-  useLayoutEffect(() => {
-    setScrollEl(document.getElementById('main-content'))
-  }, [])
 
   useEffect(() => { document.title = 'WordCore — Words' }, [])
 
@@ -121,17 +119,11 @@ export default function WordList() {
     URL.revokeObjectURL(url)
   }
 
-  const virtualizer = useVirtualizer({
-    count: paged.length,
-    getScrollElement: () => scrollEl,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 10,
-  })
-
   const weakCount = Object.values(records).filter(r => isWeakRecord(r)).length
 
   function goPage(n) {
     setPage(n)
+    const scrollEl = document.getElementById('main-content')
     scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -190,13 +182,14 @@ export default function WordList() {
         {filtered.length === 0 ? (
           <div className="words-empty">No words match.</div>
         ) : (
-          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
-            {virtualizer.getVirtualItems().map(virtualItem => {
-              const w = paged[virtualItem.index]
+          <div className="words-list__inner">
+            {paged.map(w => {
               const record = records[w.word] || {}
               const isMastered = record.status === 'mastered'
               const isWeak = isWeakRecord(record)
               const mySentence = record.draft?.trim()
+              const acceptedExamples = getAcceptedExamples(record)
+              const latestAccepted = acceptedExamples[0]?.sentence
               const statusLabel = getStatusLabel(record)
               const feedbackSummary = getFeedbackSummary(record)
               const updatedLabel = getUpdatedLabel(record.updatedAt)
@@ -207,13 +200,6 @@ export default function WordList() {
                   key={w.word}
                   aria-label={w.word}
                   className="word-row"
-                  style={{
-                    position: 'absolute',
-                    top: `${virtualItem.start}px`,
-                    left: 0,
-                    right: 0,
-                    height: `${ROW_HEIGHT}px`,
-                  }}
                 >
                   {/* Left */}
                   <div className="word-row__left">
@@ -226,14 +212,17 @@ export default function WordList() {
                     </div>
 
                     <p className="word-row__sentence">
-                      {mySentence
-                        ? <>My sentence: {mySentence}</>
+                      {latestAccepted
+                        ? <>Latest accepted: {latestAccepted}</>
+                        : mySentence
+                          ? <>Draft: {mySentence}</>
                         : <em>{w.example}</em>
                       }
                     </p>
 
                     <p className="word-row__meta">
                       Attempts: {attemptsLabel}
+                      <> · Examples: {Math.min(acceptedExamples.length, REQUIRED_ACCEPTED_ATTEMPTS)}/{REQUIRED_ACCEPTED_ATTEMPTS}</>
                       {updatedLabel && <> · Updated: {updatedLabel}</>}
                       {feedbackSummary && <> · <span style={{ color: isWeak ? 'var(--wc-error)' : 'inherit' }}>{feedbackSummary}</span></>}
                     </p>

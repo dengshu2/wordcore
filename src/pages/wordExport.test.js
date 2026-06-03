@@ -10,7 +10,15 @@ describe('buildWordRecords', () => {
   it('combines word data and learning records', () => {
     expect(
       buildWordRecords(WORDS, {
-        apple: { status: 'mastered' },
+        apple: {
+          status: 'mastered',
+          sentenceAttempts: [
+            {
+              sentence: 'I eat an apple every morning.',
+              isAcceptable: true,
+            },
+          ],
+        },
         run: { draft: 'I run after school.' },
       })
     ).toEqual([
@@ -20,6 +28,8 @@ describe('buildWordRecords', () => {
         definition: 'a fruit',
         reference_sentence: 'I eat an apple every day.',
         my_sentence: '',
+        accepted_sentences: 'I eat an apple every morning.',
+        accepted_sentence_count: 1,
         status: 'mastered',
         attempts: 0,
         accepted_attempts: 0,
@@ -31,6 +41,8 @@ describe('buildWordRecords', () => {
         definition: 'move fast',
         reference_sentence: 'She runs every morning.',
         my_sentence: 'I run after school.',
+        accepted_sentences: '',
+        accepted_sentence_count: 0,
         status: 'learning',
         attempts: 0,
         accepted_attempts: 0,
@@ -52,7 +64,7 @@ describe('buildWordCsv', () => {
       }
     )
 
-    expect(csv).toContain('word,pos,definition,reference_sentence,my_sentence,status,attempts,accepted_attempts,updated_at')
+    expect(csv).toContain('word,pos,definition,reference_sentence,my_sentence,accepted_sentences,accepted_sentence_count,status,attempts,accepted_attempts,updated_at')
     expect(csv).toContain('"I said ""apple"", then ate it."')
   })
 })

@@ -4,7 +4,7 @@ import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
 import { getNextWord, getEarliestReviewDate, includesTargetWord } from './studySession'
 import { checkSentence } from '../services/sentenceCheck'
-import { computeNextReviewAt } from '../hooks/useProgress'
+import { computeNextReviewAt, normalizeSentenceKey } from '../hooks/useProgress'
 
 const REQUIRED_ACCEPTED_ATTEMPTS = 3
 
@@ -28,7 +28,7 @@ function getRequestedWord(wordList, requestedWord) {
 
 export default function Study() {
   const { records, setStatus, saveDraft, saveFeedback, markMastered, confirmReview, resetToLearning, syncState } = useProgressContext()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const requestedWord = searchParams.get('word')
   const initialWord = getRequestedWord(words, requestedWord)
@@ -61,6 +61,7 @@ export default function Study() {
   const hasTargetWord = current ? includesTargetWord(sentence, current.word) : false
   const canCompare = hasSentence && hasTargetWord
   const acceptedAttempts = currentRecord.acceptedAttempts || 0
+  const acceptedSentenceAttempts = (currentRecord.sentenceAttempts || []).filter(attempt => attempt.isAcceptable)
   const hasSessionAccepted = sessionAcceptedSentences.size > 0
   const masteredReady = Boolean(feedback?.is_acceptable) && acceptedAttempts >= REQUIRED_ACCEPTED_ATTEMPTS && hasSessionAccepted
   const remainingAcceptedChecks = Math.max(REQUIRED_ACCEPTED_ATTEMPTS - acceptedAttempts, 0)
@@ -166,6 +167,27 @@ export default function Study() {
   }
 
   async function handleSelfCheck() {
+    const normalizedSentence = normalizeSentenceKey(sentence)
+    const isDuplicateAcceptedSentence = acceptedSentenceAttempts.some(attempt =>
+      attempt.normalizedSentence === normalizedSentence
+    )
+    if (isDuplicateAcceptedSentence) {
+      const duplicateFeedback = {
+        is_acceptable: false,
+        grammar_feedback: '',
+        naturalness_feedback: 'This repeats an accepted sentence. Write a new example to make progress.',
+        suggested_revision: '',
+      }
+      setFeedback(duplicateFeedback)
+      saveFeedback(current.word, duplicateFeedback, sentence)
+      setRevealed(true)
+      setResultOpen(true)
+      requestAnimationFrame(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+      return
+    }
+
     setIsChecking(true)
     setCheckError('')
     try {
@@ -284,7 +306,7 @@ export default function Study() {
                 saveDraft(current.word, value)
               }}
               onKeyDown={handleSentenceKeyDown}
-              placeholder={`Write one natural sentence using "${current.word}"…`}
+              placeholder={`Write a new natural sentence using "${current.word}"…`}
             />
             {sentence && (
               <button
@@ -306,6 +328,8 @@ export default function Study() {
             Include the word &quot;{current.word}&quot; in your sentence before self-checking.
           </p>
           {checkError && <p className="study-hint--warn">{checkError}</p>}
+
+          <AcceptedExamples attempts={acceptedSentenceAttempts} requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS} />
 
           <div className="study-submit-row">
             <span className="body-xs" style={{ color: 'var(--wc-muted)' }}>Cmd/Ctrl + Enter</span>
@@ -359,6 +383,25 @@ export default function Study() {
         )}
       </div>
     </div>
+  )
+}
+
+function AcceptedExamples({ attempts, requiredAttempts }) {
+  if (!attempts.length) return null
+  return (
+    <section className="study-examples" aria-label="Accepted examples">
+      <div className="study-examples__header">
+        <span className="label">Accepted examples</span>
+        <span className="study-examples__count num">{Math.min(attempts.length, requiredAttempts)}/{requiredAttempts}</span>
+      </div>
+      <ol className="study-examples__list">
+        {attempts.map(attempt => (
+          <li key={attempt.normalizedSentence || attempt.sentence} className="study-examples__item">
+            {attempt.sentence}
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 

@@ -25,19 +25,33 @@ type User struct {
 
 // WordRecord holds everything the system tracks per word per user.
 type WordRecord struct {
-	Word                string     `json:"word"`
-	Status              string     `json:"status"`
-	Draft               string     `json:"draft"`
-	LastCheckedSentence string     `json:"last_checked_sentence"`
-	FeedbackAcceptable  *bool      `json:"feedback_acceptable"`
-	FeedbackGrammar     string     `json:"feedback_grammar"`
-	FeedbackNaturalness string     `json:"feedback_naturalness"`
-	FeedbackRevision    string     `json:"feedback_revision"`
-	Attempts            int        `json:"attempts"`
-	AcceptedAttempts    int        `json:"accepted_attempts"`
-	UpdatedAt           time.Time  `json:"updated_at"`
-	ReviewCount         int        `json:"review_count"`
-	NextReviewAt        *time.Time `json:"next_review_at"`
+	Word                string        `json:"word"`
+	Status              string        `json:"status"`
+	Draft               string        `json:"draft"`
+	LastCheckedSentence string        `json:"last_checked_sentence"`
+	FeedbackAcceptable  *bool         `json:"feedback_acceptable"`
+	FeedbackGrammar     string        `json:"feedback_grammar"`
+	FeedbackNaturalness string        `json:"feedback_naturalness"`
+	FeedbackRevision    string        `json:"feedback_revision"`
+	Attempts            int           `json:"attempts"`
+	AcceptedAttempts    int           `json:"accepted_attempts"`
+	UpdatedAt           time.Time     `json:"updated_at"`
+	ReviewCount         int           `json:"review_count"`
+	NextReviewAt        *time.Time    `json:"next_review_at"`
+	SentenceAttempts    []WordAttempt `json:"sentence_attempts,omitempty"`
+}
+
+// WordAttempt is one checked sentence for a user and word.
+type WordAttempt struct {
+	ID                  string    `json:"id,omitempty"`
+	Word                string    `json:"word,omitempty"`
+	Sentence            string    `json:"sentence"`
+	NormalizedSentence  string    `json:"normalized_sentence"`
+	IsAcceptable        bool      `json:"is_acceptable"`
+	FeedbackGrammar     string    `json:"feedback_grammar"`
+	FeedbackNaturalness string    `json:"feedback_naturalness"`
+	FeedbackRevision    string    `json:"feedback_revision"`
+	CreatedAt           time.Time `json:"created_at"`
 }
 
 // InitDB opens a PostgreSQL connection, runs the schema migrations, and returns the handle.
@@ -188,7 +202,22 @@ func getAllRecords(db *sql.DB, userID string) (map[string]WordRecord, error) {
 		}
 		result[r.Word] = r
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	attempts, err := getSentenceAttempts(db, userID)
+	if err != nil {
+		return nil, err
+	}
+	for word, wordAttempts := range attempts {
+		r := result[word]
+		r.Word = word
+		r.SentenceAttempts = wordAttempts
+		result[word] = r
+	}
+
+	return result, nil
 }
 
 // upsertRecord creates or fully replaces a word record for the given user.
@@ -232,7 +261,128 @@ func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, er
 	if err != nil {
 		return WordRecord{}, fmt.Errorf("upsert record: %w", err)
 	}
+	if len(r.SentenceAttempts) > 0 {
+		if err := upsertSentenceAttempts(db, userID, word, r.SentenceAttempts); err != nil {
+			return WordRecord{}, err
+		}
+	}
+	attempts, err := getSentenceAttemptsForWord(db, userID, word)
+	if err != nil {
+		return WordRecord{}, err
+	}
+	if len(attempts) > 0 {
+		total := len(attempts)
+		accepted := 0
+		for _, attempt := range attempts {
+			if attempt.IsAcceptable {
+				accepted++
+			}
+		}
+		out.Attempts = total
+		out.AcceptedAttempts = accepted
+		out.SentenceAttempts = attempts
+		if _, err := db.Exec(
+			`UPDATE word_records SET attempts = $1, accepted_attempts = $2 WHERE user_id = $3 AND word = $4`,
+			total, accepted, userID, word,
+		); err != nil {
+			return WordRecord{}, fmt.Errorf("sync attempt counts: %w", err)
+		}
+	}
 	return out, nil
+}
+
+func normalizeSentenceForKey(sentence string) string {
+	return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(sentence)), " "))
+}
+
+func getSentenceAttempts(db *sql.DB, userID string) (map[string][]WordAttempt, error) {
+	rows, err := db.Query(`
+		SELECT id, word, sentence, normalized_sentence, is_acceptable,
+		       feedback_grammar, feedback_naturalness, feedback_revision, created_at
+		FROM word_attempts
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get sentence attempts: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[string][]WordAttempt)
+	for rows.Next() {
+		var a WordAttempt
+		if err := rows.Scan(
+			&a.ID, &a.Word, &a.Sentence, &a.NormalizedSentence, &a.IsAcceptable,
+			&a.FeedbackGrammar, &a.FeedbackNaturalness, &a.FeedbackRevision, &a.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan sentence attempt: %w", err)
+		}
+		result[a.Word] = append(result[a.Word], a)
+	}
+	return result, rows.Err()
+}
+
+func getSentenceAttemptsForWord(db *sql.DB, userID, word string) ([]WordAttempt, error) {
+	rows, err := db.Query(`
+		SELECT id, word, sentence, normalized_sentence, is_acceptable,
+		       feedback_grammar, feedback_naturalness, feedback_revision, created_at
+		FROM word_attempts
+		WHERE user_id = $1 AND word = $2
+		ORDER BY created_at DESC
+	`, userID, word)
+	if err != nil {
+		return nil, fmt.Errorf("get sentence attempts for word: %w", err)
+	}
+	defer rows.Close()
+
+	var attempts []WordAttempt
+	for rows.Next() {
+		var a WordAttempt
+		if err := rows.Scan(
+			&a.ID, &a.Word, &a.Sentence, &a.NormalizedSentence, &a.IsAcceptable,
+			&a.FeedbackGrammar, &a.FeedbackNaturalness, &a.FeedbackRevision, &a.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan sentence attempt: %w", err)
+		}
+		attempts = append(attempts, a)
+	}
+	return attempts, rows.Err()
+}
+
+func upsertSentenceAttempts(db *sql.DB, userID, word string, attempts []WordAttempt) error {
+	for _, attempt := range attempts {
+		sentence := strings.TrimSpace(attempt.Sentence)
+		if sentence == "" {
+			continue
+		}
+		normalized := strings.TrimSpace(attempt.NormalizedSentence)
+		if normalized == "" {
+			normalized = normalizeSentenceForKey(sentence)
+		}
+		createdAt := attempt.CreatedAt
+		if createdAt.IsZero() {
+			createdAt = time.Now()
+		}
+		if _, err := db.Exec(`
+			INSERT INTO word_attempts (
+				user_id, word, sentence, normalized_sentence, is_acceptable,
+				feedback_grammar, feedback_naturalness, feedback_revision, created_at
+			)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+			ON CONFLICT (user_id, word, normalized_sentence) DO UPDATE SET
+				sentence             = EXCLUDED.sentence,
+				is_acceptable        = EXCLUDED.is_acceptable,
+				feedback_grammar     = EXCLUDED.feedback_grammar,
+				feedback_naturalness = EXCLUDED.feedback_naturalness,
+				feedback_revision    = EXCLUDED.feedback_revision
+		`,
+			userID, word, sentence, normalized, attempt.IsAcceptable,
+			attempt.FeedbackGrammar, attempt.FeedbackNaturalness, attempt.FeedbackRevision, createdAt,
+		); err != nil {
+			return fmt.Errorf("upsert sentence attempt: %w", err)
+		}
+	}
+	return nil
 }
 
 // getAllRecordsSlice returns every record as a slice — used for CSV export.

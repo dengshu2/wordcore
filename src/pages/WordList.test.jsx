@@ -52,6 +52,14 @@ vi.mock('../context/ProgressContext', () => ({
         acceptedAttempts: 1,
         updatedAt: '2026-03-08T10:00:00.000Z',
         feedback: { isAcceptable: true },
+        sentenceAttempts: [
+          {
+            sentence: 'The zebra is near the tree.',
+            normalizedSentence: 'the zebra is near the tree.',
+            isAcceptable: true,
+            createdAt: '2026-03-08T10:00:00.000Z',
+          },
+        ],
       },
     },
     masteredCount: 1,
@@ -87,14 +95,16 @@ describe('WordList', () => {
     expect(screen.queryByText('apple')).not.toBeInTheDocument()
   })
 
-  it('shows my sentence when a draft exists', () => {
+  it('shows the latest saved sentence when a draft exists', () => {
     render(<MemoryRouter><WordList /></MemoryRouter>)
-    expect(screen.getByText(/my sentence: i run after dinner\./i)).toBeInTheDocument()
+    expect(screen.getByText(/draft: i run after dinner\./i)).toBeInTheDocument()
+    expect(screen.getByText(/latest accepted: the zebra is near the tree\./i)).toBeInTheDocument()
   })
 
   it('shows attempts and latest feedback summary', () => {
     render(<MemoryRouter><WordList /></MemoryRouter>)
     expect(screen.getByText(/attempts: 2\/0/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/examples: \d\/3/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/latest check: use the simple present here\./i)).toBeInTheDocument()
   })
 

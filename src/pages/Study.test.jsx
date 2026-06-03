@@ -56,7 +56,7 @@ describe('Study', () => {
   })
 
   function getSentenceInput() {
-    return screen.getByPlaceholderText(/write one natural sentence/i)
+    return screen.getByLabelText(/write a sentence using the word/i)
   }
 
   function renderStudy(initialEntries = ['/']) {
@@ -227,6 +227,34 @@ describe('Study', () => {
     expect(await screen.findByText(/acceptable checks: 1\/3/i)).toBeInTheDocument()
     expect(screen.getByText(/complete 2 more acceptable self-check/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /mastered/i })).toBeDisabled()
+  })
+
+  it('does not send repeated accepted sentences to AI checking', async () => {
+    mockRecords = {
+      abandon: {
+        status: 'learning',
+        draft: 'The hikers abandon the trail.',
+        acceptedAttempts: 1,
+        sentenceAttempts: [
+          {
+            sentence: 'The hikers abandon the trail.',
+            normalizedSentence: 'the hikers abandon the trail.',
+            isAcceptable: true,
+          },
+        ],
+      },
+    }
+    renderStudy(['/study?word=abandon'])
+    fireEvent.change(getSentenceInput(), { target: { value: '  the hikers abandon the trail.  ' } })
+    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
+
+    expect(checkSentence).not.toHaveBeenCalled()
+    expect(await screen.findByText(/repeats an accepted sentence/i)).toBeInTheDocument()
+    expect(mockSaveFeedback).toHaveBeenCalledWith(
+      'abandon',
+      expect.objectContaining({ is_acceptable: false }),
+      '  the hikers abandon the trail.  '
+    )
   })
 
   it('can open a specific word from the word bank link', () => {
