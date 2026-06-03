@@ -269,119 +269,119 @@ export default function Study() {
 
   return (
     <div className="study-layout">
-
-      {/* ── Left col: word info ───────────────────────────────────── */}
-      <div className="study-word-section" key={current.word}>
-        <div className="study-word-row">
-          <span className="study-word">{current.word}</span>
-          <span className="badge badge--accent">{current.pos}</span>
-        </div>
-
-        <p className="study-definition">{current.definition}</p>
-
-        <div className="study-reference">
-          <p className="study-reference__sentence">{current.example}</p>
-          <p className="study-reference__hint">Keep the frame, then swap one small detail.</p>
-          {requestedWord && current?.word === requestedWord && (
-            <p className="study-reference__hint" style={{ color: 'var(--wc-accent)', marginTop: 'var(--space-2)' }}>
-              Studying this word from the word bank.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ── Right col: input + result ─────────────────────────────── */}
-      <div className="study-input-section">
-        <div className="study-input-area">
-          <div className="study-sentence-wrap">
-            <textarea
-              id="study-sentence"
-              ref={sentenceRef}
-              className="input textarea study-sentence-input"
-              aria-label={`Write a sentence using the word "${current.word}"`}
-              value={sentence}
-              onChange={e => {
-                const value = e.target.value
-                setSentence(value)
-                saveDraft(current.word, value)
-              }}
-              onKeyDown={handleSentenceKeyDown}
-              placeholder={`Write a new natural sentence using "${current.word}"…`}
-            />
-            {sentence && (
-              <button
-                type="button"
-                className="study-sentence-clear"
-                aria-label="Clear sentence"
-                onClick={() => {
-                  setSentence('')
-                  saveDraft(current.word, '')
-                  sentenceRef.current?.focus()
-                }}
-              >
-                ×
-              </button>
-            )}
+      <article className="study-sheet" key={current.word}>
+        <header className="study-word-section">
+          <p className="study-kicker">Daily sentence practice</p>
+          <div className="study-word-row">
+            <h1 className="study-word">{current.word}</h1>
+            <span className="badge badge--accent">{current.pos}</span>
           </div>
 
-          <p className={`study-hint--warn${hasSentence && !hasTargetWord ? '' : ' study-hint--hidden'}`} aria-hidden={!hasSentence || hasTargetWord}>
-            Include the word &quot;{current.word}&quot; in your sentence before self-checking.
-          </p>
-          {checkError && <p className="study-hint--warn">{checkError}</p>}
+          <p className="study-definition">{current.definition}</p>
+
+          <div className="study-reference">
+            <p className="study-reference__sentence">{current.example}</p>
+            <p className="study-reference__hint">Keep the frame, then swap one small detail.</p>
+            {requestedWord && current?.word === requestedWord && (
+              <p className="study-reference__hint study-reference__hint--accent">
+                Studying this word from the word bank.
+              </p>
+            )}
+          </div>
+        </header>
+
+        <div className="study-input-section">
+          <section className="study-input-area" aria-label="Sentence input">
+            <div className="study-sentence-wrap">
+              <textarea
+                id="study-sentence"
+                ref={sentenceRef}
+                className="input textarea study-sentence-input"
+                aria-label={`Write a sentence using the word "${current.word}"`}
+                value={sentence}
+                onChange={e => {
+                  const value = e.target.value
+                  setSentence(value)
+                  saveDraft(current.word, value)
+                }}
+                onKeyDown={handleSentenceKeyDown}
+                placeholder={`Write a new natural sentence using "${current.word}"...`}
+              />
+              {sentence && (
+                <button
+                  type="button"
+                  className="study-sentence-clear"
+                  aria-label="Clear sentence"
+                  onClick={() => {
+                    setSentence('')
+                    saveDraft(current.word, '')
+                    sentenceRef.current?.focus()
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            <p className={`study-hint--warn${hasSentence && !hasTargetWord ? '' : ' study-hint--hidden'}`} aria-hidden={!hasSentence || hasTargetWord}>
+              Include the word &quot;{current.word}&quot; in your sentence before self-checking.
+            </p>
+            {checkError && <p className="study-hint--warn">{checkError}</p>}
+
+            <div className="study-submit-row">
+              <span className="body-xs" style={{ color: 'var(--wc-muted)' }}>Cmd/Ctrl + Enter</span>
+              <button
+                className="btn btn--primary btn--sm"
+                onClick={handleSelfCheck}
+                disabled={!canCompare || isChecking}
+              >
+                {isChecking ? 'Checking...' : 'Self-check'}
+              </button>
+            </div>
+          </section>
 
           <AcceptedExamples attempts={acceptedSentenceAttempts} requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS} />
 
-          <div className="study-submit-row">
-            <span className="body-xs" style={{ color: 'var(--wc-muted)' }}>Cmd/Ctrl + Enter</span>
-            <button
-              className="btn btn--primary btn--sm"
-              onClick={handleSelfCheck}
-              disabled={!canCompare || isChecking}
-            >
-              {isChecking ? 'Checking…' : 'Self-check'}
-            </button>
-          </div>
+          {(hasResult || isChecking) && (
+            <section className="study-result" ref={resultRef} aria-label="Sentence check result">
+              <button className="study-result__toggle" onClick={() => setResultOpen(p => !p)} aria-expanded={resultOpen}>
+                <span className="label">Result</span>
+                <span className="study-result__arrow" aria-hidden="true">{resultOpen ? '▲' : '▼'}</span>
+              </button>
+
+              {resultOpen && (
+                <div className="study-result__body">
+                  {isChecking ? (
+                    <>
+                      <div className="skeleton" style={{ height: 40, marginBottom: 12 }} />
+                      <div className="skeleton" style={{ height: 16, width: '60%' }} />
+                    </>
+                  ) : revealed && feedback ? (
+                    <FeedbackPanel
+                      feedback={feedback}
+                      acceptedAttempts={acceptedAttempts}
+                      requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS}
+                      remainingAcceptedChecks={remainingAcceptedChecks}
+                      masteredReady={masteredReady}
+                      onAgain={handleAgain}
+                      onMastered={handleMastered}
+                    />
+                  ) : storedFeedback ? (
+                    <StoredFeedbackPanel
+                      stored={storedFeedback}
+                      currentRecord={currentRecord}
+                      requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS}
+                      storedMasteredReady={storedMasteredReady}
+                      onAgain={handleAgain}
+                      onMastered={handleMastered}
+                    />
+                  ) : null}
+                </div>
+              )}
+            </section>
+          )}
         </div>
-
-        {(hasResult || isChecking) && (
-          <div className="study-result" ref={resultRef}>
-            <button className="study-result__toggle" onClick={() => setResultOpen(p => !p)} aria-expanded={resultOpen}>
-              <span className="label">Result</span>
-              <span className="study-result__arrow" aria-hidden="true">{resultOpen ? '▲' : '▼'}</span>
-            </button>
-
-            {resultOpen && (
-              <div className="study-result__body">
-                {isChecking ? (
-                  <>
-                    <div className="skeleton" style={{ height: 40, marginBottom: 12 }} />
-                    <div className="skeleton" style={{ height: 16, width: '60%' }} />
-                  </>
-                ) : revealed && feedback ? (
-                  <FeedbackPanel
-                    feedback={feedback}
-                    acceptedAttempts={acceptedAttempts}
-                    requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS}
-                    remainingAcceptedChecks={remainingAcceptedChecks}
-                    masteredReady={masteredReady}
-                    onAgain={handleAgain}
-                    onMastered={handleMastered}
-                  />
-                ) : storedFeedback ? (
-                  <StoredFeedbackPanel
-                    stored={storedFeedback}
-                    currentRecord={currentRecord}
-                    requiredAttempts={REQUIRED_ACCEPTED_ATTEMPTS}
-                    storedMasteredReady={storedMasteredReady}
-                    onAgain={handleAgain}
-                    onMastered={handleMastered}
-                  />
-                ) : null}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      </article>
     </div>
   )
 }
