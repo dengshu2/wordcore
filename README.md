@@ -89,12 +89,11 @@ GRANT ALL PRIVILEGES ON DATABASE wordcore TO wordcore;
 
 Tables are created automatically on first startup.
 
-### Nginx Proxy Manager
+### Caddy Reverse Proxy
 
-Add one Proxy Host:
+Add one Caddy site:
 - **Domain**: `wordcore.yourdomain.com`
-- **Forward Host**: `wordcore`
-- **Forward Port**: `8080`
+- **Upstream**: `wordcore:8080`
 - Enable SSL (Let's Encrypt)
 
 ## Scripts

@@ -18,7 +18,7 @@ services:
       - STATIC_DIR=/app/static
       - TZ=Asia/Shanghai
     networks:
-      - npm-network
+      - proxy-network
       - db-sync-net
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
@@ -28,7 +28,7 @@ services:
       retries: 3
 
 networks:
-  npm-network:
+  proxy-network:
     external: true
   db-sync-net:
     external: true
