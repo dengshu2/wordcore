@@ -6,6 +6,9 @@ const AuthContext = createContext(null)
 function parseTokenPayload(token) {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]))
+        // Treat an already-expired token as absent — otherwise the app renders
+        // the logged-in shell and immediately bounces on the first 401.
+        if (payload.exp && payload.exp * 1000 <= Date.now()) return null
         return { id: payload.user_id, email: payload.email }
     } catch {
         return null
@@ -15,7 +18,9 @@ function parseTokenPayload(token) {
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(() => {
         const token = getToken()
-        return token ? parseTokenPayload(token) : null
+        const parsed = token ? parseTokenPayload(token) : null
+        if (token && !parsed) clearToken()
+        return parsed
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')

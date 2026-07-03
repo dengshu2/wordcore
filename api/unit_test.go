@@ -1,0 +1,123 @@
+package main
+
+import (
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func TestIsHashedAsset(t *testing.T) {
+	cases := []struct {
+		name string
+		want bool
+	}{
+		{"index-BZbSmBmg.js", true},
+		{"wordbank-DcjIxlb4.js", true},
+		{"index-Dy7HiZ8i.css", true},
+		{"favicon.ico", false},
+		{"apple-touch-icon.png", false}, // "icon" after last dash is too short
+		{"index.html", false},
+		{"noext", false},
+		{"short-abc.js", false},
+	}
+	for _, c := range cases {
+		if got := isHashedAsset(c.name); got != c.want {
+			t.Errorf("isHashedAsset(%q) = %v, want %v", c.name, got, c.want)
+		}
+	}
+}
+
+func TestNormalizeSentenceForKey(t *testing.T) {
+	cases := []struct {
+		in, want string
+	}{
+		{"  The  hikers Abandon\tthe trail.  ", "the hikers abandon the trail."},
+		{"Simple.", "simple."},
+		{"", ""},
+	}
+	for _, c := range cases {
+		if got := normalizeSentenceForKey(c.in); got != c.want {
+			t.Errorf("normalizeSentenceForKey(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestParseOrigins(t *testing.T) {
+	origins := parseOrigins("https://wordcore.example.com, https://other.example.com,")
+	for _, want := range []string{
+		"https://wordcore.example.com",
+		"https://other.example.com",
+		"http://localhost:5173", // dev origins always included
+	} {
+		if !origins[want] {
+			t.Errorf("expected origin %q to be allowed", want)
+		}
+	}
+	if origins[""] {
+		t.Error("empty origin must not be allowed")
+	}
+}
+
+func TestTokenRoundTrip(t *testing.T) {
+	auth := NewAuthService(nil, "test-secret")
+	user := User{ID: "user-123", Email: "a@b.com"}
+
+	token, err := auth.signToken(user)
+	if err != nil {
+		t.Fatalf("signToken: %v", err)
+	}
+
+	claims, err := auth.ValidateToken(token)
+	if err != nil {
+		t.Fatalf("ValidateToken: %v", err)
+	}
+	if claims.UserID != user.ID || claims.Email != user.Email {
+		t.Errorf("claims = %+v, want user %q email %q", claims, user.ID, user.Email)
+	}
+
+	if _, err := auth.ValidateToken(token + "x"); err == nil {
+		t.Error("tampered token must not validate")
+	}
+
+	other := NewAuthService(nil, "different-secret")
+	if _, err := other.ValidateToken(token); err == nil {
+		t.Error("token signed with another secret must not validate")
+	}
+}
+
+func TestValidateTokenRejectsUnsignedAlg(t *testing.T) {
+	auth := NewAuthService(nil, "test-secret")
+	unsigned := jwt.NewWithClaims(jwt.SigningMethodNone, &Claims{
+		UserID: "user-123",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		},
+	})
+	tokenStr, err := unsigned.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	if err != nil {
+		t.Fatalf("sign none token: %v", err)
+	}
+	if _, err := auth.ValidateToken(tokenStr); err == nil {
+		t.Error(`token with alg "none" must not validate`)
+	}
+}
+
+func TestClientIP(t *testing.T) {
+	r := httptest.NewRequest("POST", "/auth/login", nil)
+	r.RemoteAddr = "10.0.0.5:41234"
+	if got := clientIP(r); got != "10.0.0.5" {
+		t.Errorf("clientIP without XFF = %q, want 10.0.0.5", got)
+	}
+
+	r.Header.Set("X-Forwarded-For", "203.0.113.9, 10.0.0.5")
+	if got := clientIP(r); got != "203.0.113.9" {
+		t.Errorf("clientIP with XFF chain = %q, want 203.0.113.9", got)
+	}
+
+	r.Header.Set("X-Forwarded-For", "203.0.113.9")
+	if got := clientIP(r); got != "203.0.113.9" {
+		t.Errorf("clientIP with single XFF = %q, want 203.0.113.9", got)
+	}
+}

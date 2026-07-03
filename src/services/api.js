@@ -80,10 +80,13 @@ export async function fetchRecords() {
  * @param {string} word
  * @param {object} record - WordRecord shape
  */
-export async function upsertRecord(word, record) {
+export async function upsertRecord(word, record, { keepalive = false } = {}) {
     return request(`/api/records/${encodeURIComponent(word)}`, {
         method: 'PUT',
         body: JSON.stringify(record),
+        // keepalive lets the browser finish the request even if the page is
+        // being unloaded — used when flushing pending saves on pagehide.
+        keepalive,
     })
 }
 

@@ -220,10 +220,26 @@ func getAllRecords(db *sql.DB, userID string) (map[string]WordRecord, error) {
 	return result, nil
 }
 
+// dbtx is the subset of database operations shared by *sql.DB and *sql.Tx,
+// letting query helpers run either standalone or inside a transaction.
+type dbtx interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+}
+
 // upsertRecord creates or fully replaces a word record for the given user.
+// The record row and any provided sentence attempts are written in a single
+// transaction so a failure can't leave counts and history out of sync.
 func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return WordRecord{}, fmt.Errorf("begin upsert tx: %w", err)
+	}
+	defer tx.Rollback()
+
 	var out WordRecord
-	err := db.QueryRow(`
+	err = tx.QueryRow(`
 		INSERT INTO word_records
 			(user_id, word, status, draft, last_checked_sentence,
 			 feedback_acceptable, feedback_grammar, feedback_naturalness, feedback_revision,
@@ -261,16 +277,18 @@ func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, er
 	if err != nil {
 		return WordRecord{}, fmt.Errorf("upsert record: %w", err)
 	}
+
+	// Attempt history is only sent when a self-check changed it. Draft and
+	// status saves omit it, so those PUTs stay a single-row upsert instead of
+	// re-writing the full history on every debounced keystroke.
 	if len(r.SentenceAttempts) > 0 {
-		if err := upsertSentenceAttempts(db, userID, word, r.SentenceAttempts); err != nil {
+		if err := upsertSentenceAttempts(tx, userID, word, r.SentenceAttempts); err != nil {
 			return WordRecord{}, err
 		}
-	}
-	attempts, err := getSentenceAttemptsForWord(db, userID, word)
-	if err != nil {
-		return WordRecord{}, err
-	}
-	if len(attempts) > 0 {
+		attempts, err := getSentenceAttemptsForWord(tx, userID, word)
+		if err != nil {
+			return WordRecord{}, err
+		}
 		total := len(attempts)
 		accepted := 0
 		for _, attempt := range attempts {
@@ -281,12 +299,16 @@ func upsertRecord(db *sql.DB, userID, word string, r WordRecord) (WordRecord, er
 		out.Attempts = total
 		out.AcceptedAttempts = accepted
 		out.SentenceAttempts = attempts
-		if _, err := db.Exec(
+		if _, err := tx.Exec(
 			`UPDATE word_records SET attempts = $1, accepted_attempts = $2 WHERE user_id = $3 AND word = $4`,
 			total, accepted, userID, word,
 		); err != nil {
 			return WordRecord{}, fmt.Errorf("sync attempt counts: %w", err)
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return WordRecord{}, fmt.Errorf("commit upsert tx: %w", err)
 	}
 	return out, nil
 }
@@ -322,7 +344,7 @@ func getSentenceAttempts(db *sql.DB, userID string) (map[string][]WordAttempt, e
 	return result, rows.Err()
 }
 
-func getSentenceAttemptsForWord(db *sql.DB, userID, word string) ([]WordAttempt, error) {
+func getSentenceAttemptsForWord(db dbtx, userID, word string) ([]WordAttempt, error) {
 	rows, err := db.Query(`
 		SELECT id, word, sentence, normalized_sentence, is_acceptable,
 		       feedback_grammar, feedback_naturalness, feedback_revision, created_at
@@ -349,7 +371,7 @@ func getSentenceAttemptsForWord(db *sql.DB, userID, word string) ([]WordAttempt,
 	return attempts, rows.Err()
 }
 
-func upsertSentenceAttempts(db *sql.DB, userID, word string, attempts []WordAttempt) error {
+func upsertSentenceAttempts(db dbtx, userID, word string, attempts []WordAttempt) error {
 	for _, attempt := range attempts {
 		sentence := strings.TrimSpace(attempt.Sentence)
 		if sentence == "" {

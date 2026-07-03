@@ -1,53 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
-import { getNextWord, getEarliestReviewDate, includesTargetWord } from './studySession'
+import { getEarliestReviewDate, includesTargetWord } from './studySession'
 import { checkSentence } from '../services/sentenceCheck'
-import { computeNextReviewAt, normalizeSentenceKey } from '../hooks/useProgress'
-
-const REQUIRED_ACCEPTED_ATTEMPTS = 3
-
-function getStoredFeedback(record) {
-  if (!record?.lastCheckedSentence) return null
-  return {
-    checkedSentence: record.lastCheckedSentence,
-    isAcceptable: Boolean(record.feedback?.isAcceptable),
-    message: record.feedback?.isAcceptable
-      ? 'Last check: acceptable for study use.'
-      : 'Last check: this sentence still needed revision.',
-    note: record.feedback?.grammarFeedback || record.feedback?.naturalnessFeedback || '',
-    suggestedRevision: record.feedback?.suggestedRevision || '',
-  }
-}
-
-function getRequestedWord(wordList, requestedWord) {
-  if (!requestedWord) return null
-  return wordList.find(w => w.word.toLowerCase() === requestedWord.toLowerCase()) || null
-}
+import { normalizeSentenceKey } from '../hooks/useProgress'
+import useStudySession, { getStoredFeedback, REQUIRED_ACCEPTED_ATTEMPTS } from './useStudySession'
+import AcceptedExamples from '../components/study/AcceptedExamples'
+import { FeedbackPanel, StoredFeedbackPanel } from '../components/study/FeedbackPanels'
 
 export default function Study() {
   const { records, setStatus, saveDraft, saveFeedback, markMastered, confirmReview, resetToLearning, syncState } = useProgressContext()
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const requestedWord = searchParams.get('word')
-  const initialWord = getRequestedWord(words, requestedWord)
-  const initialCurrent = initialWord || getNextWord(words, records, [], null)
+  const { state, dispatch, advance, requestedWord } = useStudySession(words, records, syncState)
+  const { current, sentence, revealed, feedback, checkError, isChecking, resultOpen, sessionAcceptedSentences } = state
 
-  const [current, setCurrent] = useState(() => initialCurrent)
-  const [sentence, setSentence] = useState(() => (initialCurrent ? records[initialCurrent.word]?.draft || '' : ''))
-  const [revealed, setRevealed] = useState(false)
-  const [recentWords, setRecentWords] = useState(() => (initialCurrent ? [initialCurrent.word] : []))
-  const [feedback, setFeedback] = useState(null)
-  const [checkError, setCheckError] = useState('')
-  const [isChecking, setIsChecking] = useState(false)
-  const [resultOpen, setResultOpen] = useState(() => Boolean(getStoredFeedback(initialCurrent ? records[initialCurrent.word] || {} : {})))
-  const [sessionAcceptedSentences, setSessionAcceptedSentences] = useState(() => new Set())
-
-  // Gate to prevent the requestedWord useEffect from snapping current
-  // back to the old word during the same render cycle where advance()
-  // has already picked the next word.
-  const advancingRef = useRef(false)
   const resultRef = useRef(null)
   const sentenceRef = useRef(null)
 
@@ -69,56 +34,7 @@ export default function Study() {
   const storedFeedback = getStoredFeedback(currentRecord)
   const hasResult = (revealed && feedback) || storedFeedback
 
-  useEffect(() => {
-    // Skip if advance() just fired — it already set the next word and
-    // is about to clear the URL param. Without this gate, a records
-    // update (from markMastered / setStatus) triggers this effect
-    // before navigate() clears ?word, snapping current back.
-    if (advancingRef.current) {
-      advancingRef.current = false
-      return
-    }
-    const targetWord = getRequestedWord(words, requestedWord)
-    if (!targetWord || current?.word === targetWord.word) return
-    setCurrent(targetWord)
-    setSentence(records[targetWord.word]?.draft || '')
-    setRecentWords([targetWord.word])
-    setRevealed(false)
-    setFeedback(null)
-    setCheckError('')
-    setIsChecking(false)
-    setResultOpen(false)
-    setSessionAcceptedSentences(new Set())
-  }, [requestedWord, current?.word, records])
-
-  // Recalculate the current word once records finish loading.
-  // Without this, useState initialises `current` before records exist,
-  // so `getNextWord` sees an empty map and always picks the first unseen
-  // word ("the") regardless of actual progress.
-  const prevSyncState = useRef(syncState)
-
-  useEffect(() => {
-    const wasLoading = prevSyncState.current === 'loading'
-    prevSyncState.current = syncState
-
-    if (syncState !== 'idle' || !wasLoading) return
-
-    const targetWord = getRequestedWord(words, requestedWord)
-    const next = targetWord || getNextWord(words, records, [], null)
-
-    setCurrent(next)
-    setSentence(next ? records[next.word]?.draft || '' : '')
-    setRecentWords(next ? [next.word] : [])
-    setRevealed(false)
-    setFeedback(null)
-    setCheckError('')
-    setIsChecking(false)
-    setResultOpen(Boolean(getStoredFeedback(next ? records[next.word] || {} : {})))
-    setSessionAcceptedSentences(new Set())
-  }, [syncState, records, requestedWord])
-
-  // While the initial fetch is in flight show skeleton placeholders — all
-  // hooks above must run unconditionally before this early return.
+  // While the initial fetch is in flight show skeleton placeholders.
   if (syncState === 'loading') {
     return (
       <div className="study-layout">
@@ -130,40 +46,15 @@ export default function Study() {
     )
   }
 
-  function advance(currentWord, newStatus) {
-    // Build a lightweight view of records with the just-applied status override
-    // so getNextWord can immediately see the new status without waiting for the
-    // async setRecords update to propagate.
-    const override = { ...(records[currentWord] || {}), status: newStatus }
-    if (newStatus === 'mastered') {
-      override.nextReviewAt = computeNextReviewAt(0)
-    } else if (newStatus === 'learning') {
-      override.nextReviewAt = null
-    }
-    const recordsWithOverride = {
-      ...records,
-      [currentWord]: override,
-    }
-    const next = getNextWord(words, recordsWithOverride, recentWords, currentWord)
+  function setSentence(value) {
+    dispatch({ type: 'set-sentence', value })
+    saveDraft(current.word, value)
+  }
 
-    // If we arrived via ?word=X, clear the search param so the
-    // requestedWord useEffect won't snap us back to the same word.
-    // Set the gate BEFORE navigate so the records-triggered effect
-    // that fires in the same render cycle will bail out.
-    if (requestedWord) {
-      advancingRef.current = true
-      navigate('/study', { replace: true })
-    }
-
-    setCurrent(next)
-    setRecentWords(prev => (next ? [...prev, next.word] : prev))
-    setSentence(next ? records[next.word]?.draft || '' : '')
-    setRevealed(false)
-    setFeedback(null)
-    setCheckError('')
-    setIsChecking(false)
-    setResultOpen(false)
-    setSessionAcceptedSentences(new Set())
+  function scrollToResult() {
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
   }
 
   async function handleSelfCheck() {
@@ -178,18 +69,13 @@ export default function Study() {
         naturalness_feedback: 'This repeats an accepted sentence. Write a new example to make progress.',
         suggested_revision: '',
       }
-      setFeedback(duplicateFeedback)
+      dispatch({ type: 'check-duplicate', feedback: duplicateFeedback })
       saveFeedback(current.word, duplicateFeedback, sentence)
-      setRevealed(true)
-      setResultOpen(true)
-      requestAnimationFrame(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      })
+      scrollToResult()
       return
     }
 
-    setIsChecking(true)
-    setCheckError('')
+    dispatch({ type: 'check-start' })
     try {
       const result = await checkSentence({
         word: current.word,
@@ -197,27 +83,17 @@ export default function Study() {
         referenceSentence: current.example,
         userSentence: sentence,
       })
-      setFeedback(result)
+      dispatch({ type: 'check-success', result, sentence })
       saveFeedback(current.word, result, sentence)
-      setRevealed(true)
-      setResultOpen(true)
-      requestAnimationFrame(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      })
-      if (result.is_acceptable) {
-        setSessionAcceptedSentences(prev => new Set([...prev, sentence.trim()]))
-      }
+      scrollToResult()
     } catch (err) {
-      setFeedback(null)
       const msg = err?.message || ''
-      if (msg.toLowerCase().includes('too many requests')) {
-        setCheckError('You are checking too quickly. Please wait a moment before trying again.')
-      } else {
-        setCheckError('AI feedback is temporarily unavailable. Try again.')
-      }
-      setRevealed(false)
-    } finally {
-      setIsChecking(false)
+      dispatch({
+        type: 'check-error',
+        message: msg.toLowerCase().includes('too many requests')
+          ? 'You are checking too quickly. Please wait a moment before trying again.'
+          : 'AI feedback is temporarily unavailable. Try again.',
+      })
     }
   }
 
@@ -299,11 +175,7 @@ export default function Study() {
                 className="input textarea study-sentence-input"
                 aria-label={`Write a sentence using the word "${current.word}"`}
                 value={sentence}
-                onChange={e => {
-                  const value = e.target.value
-                  setSentence(value)
-                  saveDraft(current.word, value)
-                }}
+                onChange={e => setSentence(e.target.value)}
                 onKeyDown={handleSentenceKeyDown}
                 placeholder={`Write a new natural sentence using "${current.word}"...`}
               />
@@ -314,7 +186,6 @@ export default function Study() {
                   aria-label="Clear sentence"
                   onClick={() => {
                     setSentence('')
-                    saveDraft(current.word, '')
                     sentenceRef.current?.focus()
                   }}
                 >
@@ -344,7 +215,7 @@ export default function Study() {
 
           {(hasResult || isChecking) && (
             <section className="study-result" ref={resultRef} aria-label="Sentence check result">
-              <button className="study-result__toggle" onClick={() => setResultOpen(p => !p)} aria-expanded={resultOpen}>
+              <button className="study-result__toggle" onClick={() => dispatch({ type: 'toggle-result' })} aria-expanded={resultOpen}>
                 <span className="label">Result</span>
                 <span className="study-result__arrow" aria-hidden="true">{resultOpen ? '▲' : '▼'}</span>
               </button>
@@ -382,86 +253,6 @@ export default function Study() {
           )}
         </div>
       </article>
-    </div>
-  )
-}
-
-function AcceptedExamples({ attempts, requiredAttempts }) {
-  if (!attempts.length) return null
-  return (
-    <section className="study-examples" aria-label="Accepted examples">
-      <div className="study-examples__header">
-        <span className="label">Accepted examples</span>
-        <span className="study-examples__count num">{Math.min(attempts.length, requiredAttempts)}/{requiredAttempts}</span>
-      </div>
-      <ol className="study-examples__list">
-        {attempts.map(attempt => (
-          <li key={attempt.normalizedSentence || attempt.sentence} className="study-examples__item">
-            {attempt.sentence}
-          </li>
-        ))}
-      </ol>
-    </section>
-  )
-}
-
-function FeedbackPanel({ feedback, acceptedAttempts, requiredAttempts, remainingAcceptedChecks, masteredReady, onAgain, onMastered }) {
-  return (
-    <div className="study-feedback">
-      <p className={`study-feedback__verdict ${feedback.is_acceptable ? 'study-feedback__verdict--ok' : 'study-feedback__verdict--warn'}`}>
-        {feedback.is_acceptable ? 'This sentence is acceptable for study use.' : 'This sentence needs revision before you move on.'}
-      </p>
-      {(feedback.grammar_feedback || feedback.naturalness_feedback) && (
-        <p className="study-feedback__note">{feedback.grammar_feedback || feedback.naturalness_feedback}</p>
-      )}
-      {feedback.suggested_revision && (
-        <p className="study-feedback__suggestion">Suggested: {feedback.suggested_revision}</p>
-      )}
-      <p className="study-feedback__tally num">Acceptable checks: {acceptedAttempts}/{requiredAttempts}</p>
-      {feedback.is_acceptable && !masteredReady && (
-        <p className="study-feedback__note">Complete {remainingAcceptedChecks} more acceptable self-check{remainingAcceptedChecks === 1 ? '' : 's'} before marking this word as mastered.</p>
-      )}
-      <ActionRow masteredReady={masteredReady} onAgain={onAgain} onMastered={onMastered} isAcceptable={feedback.is_acceptable} />
-    </div>
-  )
-}
-
-function StoredFeedbackPanel({ stored, currentRecord, requiredAttempts, storedMasteredReady, onAgain, onMastered }) {
-  return (
-    <div className="study-feedback">
-      <p className={`study-feedback__verdict ${stored.isAcceptable ? 'study-feedback__verdict--ok' : 'study-feedback__verdict--warn'}`}>
-        {stored.message}
-      </p>
-      <p className="study-feedback__note">Last checked sentence: {stored.checkedSentence}</p>
-      {stored.note && <p className="study-feedback__note">{stored.note}</p>}
-      {stored.suggestedRevision && (
-        <p className="study-feedback__suggestion">Suggested: {stored.suggestedRevision}</p>
-      )}
-      <p className="study-feedback__tally num">Accepted checks: {currentRecord.acceptedAttempts || 0}/{requiredAttempts}</p>
-      <ActionRow masteredReady={storedMasteredReady} onAgain={onAgain} onMastered={onMastered} isAcceptable={stored.isAcceptable} />
-    </div>
-  )
-}
-
-function ActionRow({ masteredReady, onAgain, onMastered, isAcceptable }) {
-  return (
-    <div>
-      <div className="study-action-row">
-        <button className="btn btn--outline flex-1" onClick={onAgain}>Next</button>
-        <button className="btn btn--primary flex-1" onClick={onMastered} disabled={!masteredReady}>Mastered</button>
-      </div>
-      {masteredReady && (
-        <p className="body-xs" style={{ color: 'var(--wc-muted)', marginTop: 'var(--space-1)', textAlign: 'right' }}>
-          Cmd/Ctrl + Shift + Enter
-        </p>
-      )}
-      <p className="study-action-hint">
-        {masteredReady
-          ? 'Mark as mastered, or move to the next word.'
-          : isAcceptable
-            ? 'This word stays in your learning queue.'
-            : 'You can revise your sentence above and re-check, or move on.'}
-      </p>
     </div>
   )
 }

@@ -146,9 +146,13 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	// Auth routes (public)
-	r.Post("/auth/register", h.handleRegister)
-	r.Post("/auth/login", h.handleLogin)
+	// Auth routes (public) — IP rate-limited (≈10 attempts/min, burst of 5)
+	// to slow brute-forcing and protect the bcrypt hot path.
+	r.Group(func(r chi.Router) {
+		r.Use(authRateLimiter(rate.Limit(10.0/60.0), 5))
+		r.Post("/auth/register", h.handleRegister)
+		r.Post("/auth/login", h.handleLogin)
+	})
 
 	// Protected routes
 	r.Group(func(r chi.Router) {

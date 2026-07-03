@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -80,6 +81,12 @@ func (a *AuthService) Register(email, password string) (User, string, error) {
 
 	user, err := createUser(a.db, email, string(hash))
 	if err != nil {
+		// The pre-check above races with concurrent registrations; the unique
+		// constraint on users.email is the real guard.
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return User{}, "", ErrEmailTaken
+		}
 		return User{}, "", fmt.Errorf("create user: %w", err)
 	}
 

@@ -113,9 +113,9 @@ function fromAPIRecord(apiRecord) {
 
 // ── Convert frontend shape back to the API request body ───────────────────────
 
-function toAPIRecord(record) {
+function toAPIRecord(record, { includeAttempts = false } = {}) {
   const f = normalizeFeedback(record.feedback)
-  return {
+  const body = {
     status: record.status,
     draft: record.draft,
     last_checked_sentence: record.lastCheckedSentence,
@@ -127,7 +127,13 @@ function toAPIRecord(record) {
     accepted_attempts: record.acceptedAttempts,
     review_count: record.reviewCount,
     next_review_at: record.nextReviewAt,
-    sentence_attempts: (record.sentenceAttempts || []).map(attempt => ({
+  }
+  // Only send the attempt history when this update actually changed it
+  // (i.e. after a self-check). Draft/status saves happen on every keystroke
+  // via the debounce, and re-sending every attempt row each time makes the
+  // backend re-upsert the full history for no reason.
+  if (includeAttempts) {
+    body.sentence_attempts = (record.sentenceAttempts || []).map(attempt => ({
       id: attempt.id || undefined,
       sentence: attempt.sentence,
       normalized_sentence: attempt.normalizedSentence || normalizeSentenceKey(attempt.sentence),
@@ -136,8 +142,9 @@ function toAPIRecord(record) {
       feedback_naturalness: attempt.feedbackNaturalness || '',
       feedback_revision: attempt.feedbackRevision || '',
       created_at: attempt.createdAt,
-    })),
+    }))
   }
+  return body
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -171,20 +178,49 @@ export default function useProgress(user) {
       })
   }, [user])
 
-  // Debounced API sync for a single word
-  const syncWord = useCallback((word, record) => {
-    if (pendingRef.current[word]) clearTimeout(pendingRef.current[word])
-    pendingRef.current[word] = setTimeout(() => {
-      upsertRecord(word, toAPIRecord(record)).catch(err => {
-        console.error('Failed to sync record for', word, err)
-      })
-    }, 600)
+  // Debounced API sync for a single word. Pending payloads are kept so they
+  // can be flushed immediately when the page is being hidden/closed.
+  const syncWord = useCallback((word, record, { includeAttempts = false } = {}) => {
+    const prev = pendingRef.current[word]
+    if (prev) clearTimeout(prev.timer)
+    // An in-flight feedback update must not be downgraded by a later
+    // draft-only save replacing its payload.
+    const withAttempts = includeAttempts || Boolean(prev?.includeAttempts)
+    const entry = {
+      includeAttempts: withAttempts,
+      body: toAPIRecord(record, { includeAttempts: withAttempts }),
+      timer: setTimeout(() => {
+        delete pendingRef.current[word]
+        upsertRecord(word, entry.body).catch(err => {
+          console.error('Failed to sync record for', word, err)
+        })
+      }, 600),
+    }
+    pendingRef.current[word] = entry
   }, [])
 
-  const updateRecord = useCallback((word, updater) => {
+  // Flush all pending debounced saves right away — used on pagehide so a
+  // quick tab close doesn't drop the last ~600ms of edits.
+  const flushPending = useCallback(() => {
+    for (const [word, entry] of Object.entries(pendingRef.current)) {
+      clearTimeout(entry.timer)
+      upsertRecord(word, entry.body, { keepalive: true }).catch(() => {})
+    }
+    pendingRef.current = {}
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('pagehide', flushPending)
+    return () => {
+      window.removeEventListener('pagehide', flushPending)
+      flushPending()
+    }
+  }, [flushPending])
+
+  const updateRecord = useCallback((word, updater, syncOptions) => {
     setRecords(prev => {
       const next = normalizeRecord(updater(normalizeRecord(prev[word])))
-      syncWord(word, next)
+      syncWord(word, next, syncOptions)
       return { ...prev, [word]: next }
     })
   }, [syncWord])
@@ -244,7 +280,7 @@ export default function useProgress(user) {
           updatedAt: now,
         }
       })(),
-    }))
+    }), { includeAttempts: true })
   }, [updateRecord])
 
   const markMastered = useCallback((word) => {

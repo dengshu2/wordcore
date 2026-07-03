@@ -280,37 +280,6 @@ svg {
   white-space: nowrap;
 }
 
-/* ─── Surface / card ─────────────────────────────────────────────────────── */
-.surface {
-  background: var(--wc-surface);
-  border: 1px solid var(--wc-border);
-  border-radius: var(--r-xl);
-}
-
-.surface--strong {
-  background: var(--wc-surface-strong);
-  border: 1px solid var(--wc-border);
-  border-radius: var(--r-xl);
-}
-
-.surface--glass {
-  background: var(--wc-white-glass);
-  border: 1px solid var(--wc-border);
-  border-radius: var(--r-xl);
-}
-
-.surface--accent {
-  background: var(--wc-accent-bg);
-  border: 1px solid var(--wc-accent-border);
-  border-radius: var(--r-xl);
-}
-
-.surface--warm {
-  background: var(--wc-warm-bg);
-  border: 1px solid var(--wc-warm-border);
-  border-radius: var(--r-xl);
-}
-
 /* ─── Buttons ────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -463,49 +432,6 @@ svg {
   min-height: 120px;
 }
 
-/* ─── Stat card ──────────────────────────────────────────────────────────── */
-.stat-card {
-  border-radius: var(--r-lg);
-  border: 1px solid var(--wc-border);
-  background: var(--wc-white-glass);
-  padding: var(--space-4);
-}
-
-.stat-card__label {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--wc-muted);
-}
-
-.stat-card__value {
-  font-family: var(--font-ui);
-  font-size: 1.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-  margin-top: var(--space-2);
-}
-
-/* ─── Progress bar ───────────────────────────────────────────────────────── */
-.progress-track {
-  height: 5px;
-  border-radius: var(--r-pill);
-  background: var(--wc-accent-bg);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--wc-accent) 0%, #5aab84 100%);
-  /* Use transform instead of width for GPU-accelerated 60fps animation */
-  transform-origin: left center;
-  transition: transform 600ms ease;
-}
-
 /* ─── App shell ──────────────────────────────────────────────────────────── */
 .app-shell {
   display: flex;
@@ -586,13 +512,6 @@ svg {
   }
 }
 
-/* ─── Divider ────────────────────────────────────────────────────────────── */
-.divider {
-  height: 1px;
-  background: var(--wc-border);
-  margin: var(--space-5) 0;
-}
-
 /* ─── Skeleton loader ────────────────────────────────────────────────────── */
 @keyframes shimmer {
   0% {
@@ -612,93 +531,6 @@ svg {
       rgba(69, 44, 27, 0.06) 75%);
   background-size: 800px 100%;
   animation: shimmer 1.6s infinite linear;
-}
-
-/* ─── Home page ──────────────────────────────────────────────────────────── */
-.home-layout {
-  padding: var(--space-8) var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  max-width: 520px;
-}
-
-@media (min-width: 1024px) {
-  .home-layout {
-    padding: var(--space-10);
-  }
-}
-
-.home-progress {
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  color: var(--wc-muted);
-}
-
-.home-progress__num {
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--wc-text);
-  margin-right: 4px;
-}
-
-.home-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-@media (min-width: 480px) {
-  .home-actions {
-    flex-direction: row;
-  }
-}
-
-.home-hints {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.home-hint {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--r-pill);
-  border: 1px solid transparent;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  transition: opacity var(--dur);
-}
-
-.home-hint:hover {
-  opacity: 0.8;
-}
-
-.home-hint--warn {
-  background: var(--wc-warm-bg);
-  border-color: var(--wc-warm-border);
-  color: var(--wc-warm);
-}
-
-.home-hint--ok {
-  background: var(--wc-accent-bg);
-  border-color: var(--wc-accent-border);
-  color: var(--wc-accent);
-}
-
-.home-hint__num {
-  font-size: 1.125rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.home-hint__label {
-  font-weight: 400;
-  opacity: 0.8;
 }
 
 /* ─── Study page ─────────────────────────────────────────────────────────── */
@@ -1367,13 +1199,6 @@ svg {
 
 .tab-bar__logout:active {
   opacity: 0.5;
-}
-
-/* ─── Page header ────────────────────────────────────────────────────────── */
-.page-header {
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--wc-border);
-  margin-bottom: var(--space-5);
 }
 
 /* ─── Inline notice / feedback panel ────────────────────────────────────── */
