@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import words from '../data/wordBank'
 import { useProgressContext } from '../context/ProgressContext'
 import { buildWordCsv } from './wordExport'

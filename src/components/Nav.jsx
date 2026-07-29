@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router'
 import { useAuth } from '../context/AuthContext'
 import { useProgressContext } from '../context/ProgressContext'
 import { WORD_BANK_SIZE } from '../data/wordBankMeta'

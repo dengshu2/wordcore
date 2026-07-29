@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { getNextWord } from './studySession'
 import { computeNextReviewAt } from '../hooks/useProgress'
 
