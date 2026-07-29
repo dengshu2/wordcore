@@ -2,7 +2,7 @@ export function FeedbackPanel({ feedback, acceptedAttempts, requiredAttempts, re
   return (
     <div className="study-feedback">
       <p className={`study-feedback__verdict ${feedback.is_acceptable ? 'study-feedback__verdict--ok' : 'study-feedback__verdict--warn'}`}>
-        {feedback.is_acceptable ? 'This sentence is acceptable for study use.' : 'This sentence needs revision before you move on.'}
+        {feedback.is_acceptable ? 'This sentence is acceptable for study use.' : 'This sentence needs revision to count as accepted.'}
       </p>
       {(feedback.grammar_feedback || feedback.naturalness_feedback) && (
         <p className="study-feedback__note">{feedback.grammar_feedback || feedback.naturalness_feedback}</p>
@@ -53,7 +53,7 @@ function ActionRow({ masteredReady, onAgain, onMastered, isAcceptable }) {
           ? 'Mark as mastered, or move to the next word.'
           : isAcceptable
             ? 'This word stays in your learning queue.'
-            : 'You can revise your sentence above and re-check, or move on.'}
+            : 'You can revise and re-check, or skip this word for now.'}
       </p>
     </div>
   )

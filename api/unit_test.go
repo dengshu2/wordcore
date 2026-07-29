@@ -1,12 +1,114 @@
 package main
 
 import (
+	"context"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+func TestFinalizeSentenceCheckAcceptsDifferentNaturalSense(t *testing.T) {
+	result := finalizeSentenceCheck(sentenceCheckModelResult{
+		GrammarOK:             true,
+		NaturalTargetUse:      true,
+		MatchesReferenceSense: false,
+		NaturalnessFeedback:   "This is a valid different meaning of own.",
+	})
+
+	if !result.IsAcceptable {
+		t.Fatal("a grammatical, natural use must be accepted even when it differs from the reference sense")
+	}
+	if result.MatchesReferenceSense {
+		t.Fatal("reference-sense match should remain informational")
+	}
+}
+
+func TestFinalizeSentenceCheckRejectsInvalidSentenceOrTargetUse(t *testing.T) {
+	tests := []struct {
+		name       string
+		grammarOK  bool
+		naturalUse bool
+	}{
+		{name: "grammar issue", grammarOK: false, naturalUse: true},
+		{name: "target only mentioned", grammarOK: true, naturalUse: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := finalizeSentenceCheck(sentenceCheckModelResult{
+				GrammarOK:        tt.grammarOK,
+				NaturalTargetUse: tt.naturalUse,
+			})
+			if result.IsAcceptable {
+				t.Fatal("acceptance must require both acceptable grammar and a natural target-word use")
+			}
+		})
+	}
+}
+
+func TestSentenceCheckPromptMakesReferenceSenseInformational(t *testing.T) {
+	requiredRules := []string{
+		"ANY common meaning, part of speech, or idiomatic use",
+		"inspiration only",
+		"never changes acceptance",
+		"Merely naming, quoting, spelling, defining, or repeating",
+	}
+	for _, rule := range requiredRules {
+		if !strings.Contains(sentenceCheckSystemPrompt, rule) {
+			t.Errorf("sentence-check prompt is missing policy rule %q", rule)
+		}
+	}
+}
+
+func TestLiveSentenceCheckPolicy(t *testing.T) {
+	if os.Getenv("WORDCORE_RUN_LIVE_AI_TEST") != "1" {
+		t.Skip("set WORDCORE_RUN_LIVE_AI_TEST=1 to exercise the configured OpenRouter model")
+	}
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	if apiKey == "" {
+		t.Fatal("OPENROUTER_API_KEY is required for the live AI policy test")
+	}
+	model := os.Getenv("OPENROUTER_MODEL")
+	if model == "" {
+		model = "google/gemini-2.5-flash"
+	}
+
+	client := NewOpenRouterClient(apiKey, model)
+	tests := []struct {
+		name     string
+		sentence string
+		want     bool
+	}{
+		{name: "reference verb sense", sentence: "I own a bicycle.", want: true},
+		{name: "different idiomatic sense", sentence: "I finished the project on my own.", want: true},
+		{name: "word merely quoted", sentence: `"Own" is a word.`, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			result, err := client.CheckSentence(
+				ctx,
+				"own",
+				"To possess something; have as one's property.",
+				"I own a small house.",
+				tt.sentence,
+			)
+			if err != nil {
+				t.Fatalf("CheckSentence: %v", err)
+			}
+			if result.IsAcceptable != tt.want {
+				t.Fatalf("IsAcceptable = %v, want %v; result = %+v", result.IsAcceptable, tt.want, result)
+			}
+		})
+	}
+}
 
 func TestIsHashedAsset(t *testing.T) {
 	cases := []struct {

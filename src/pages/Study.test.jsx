@@ -78,6 +78,7 @@ describe('Study', () => {
   it('shows the reference sentence immediately', () => {
     renderStudy()
     expect(screen.getByText(/She had to abandon|He was able to fix/)).toBeInTheDocument()
+    expect(screen.getByText(/another natural meaning/i)).toBeInTheDocument()
   })
 
   it('shows the last saved feedback before a new self-check', () => {

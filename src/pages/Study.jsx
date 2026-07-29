@@ -157,7 +157,7 @@ export default function Study() {
 
           <div className="study-reference">
             <p className="study-reference__sentence">{current.example}</p>
-            <p className="study-reference__hint">Keep the frame, then swap one small detail.</p>
+            <p className="study-reference__hint">Use this as inspiration, or write with another natural meaning.</p>
             {requestedWord && current?.word === requestedWord && (
               <p className="study-reference__hint study-reference__hint--accent">
                 Studying this word from the word bank.

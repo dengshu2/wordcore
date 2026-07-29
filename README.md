@@ -8,8 +8,8 @@ Write one sentence per word. Get lightweight AI feedback. Repeat until it sticks
 
 WordCore is built around one learning loop:
 
-1. Read the target word, its definition, and a reference sentence
-2. Write one similar sentence with a small change
+1. Read the target word, one common definition, and a reference sentence
+2. Write a natural sentence using the word — the reference meaning is optional
 3. Press **Self-check** to get AI feedback on grammar and naturalness
 4. Repeat until the word is genuinely usable
 
