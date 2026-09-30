@@ -1,266 +1,127 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Study from './Study'
 import { checkSentence } from '../services/sentenceCheck'
 
-const MOCK_WORDS = [
-  { word: 'abandon', pos: 'verb', definition: 'to leave something permanently', example: 'She had to abandon her car in the snow.' },
-  { word: 'able', pos: 'adjective', definition: 'having the skill to do something', example: 'He was able to fix the car himself.' },
-]
+const CARD = {
+  word: 'drop', ipa: '/drɑːp/', syllables: ['drop'], stress: 0, level: 'A2',
+  senses: [{
+    pos: 'verb', definition: 'to let something fall', pattern: 'drop sth',
+    examples: [
+      { text: 'I dropped my keys on the way home.', context: 'daily life' },
+      { text: 'Please do not drop the glass bowl.', context: 'at home' },
+    ],
+    collocations: ['drop your keys'],
+  }],
+  visual: { kind: 'none' },
+  prompts: { question: 'What did you last drop by accident?', starter: 'When prices drop, I...', rewrite_source: 'I let my phone fall.' },
+  audio: { word: { text: 'drop', kind: 'word', url: '/audio/a.mp3', ready: true }, examples: [] },
+}
 
-vi.mock('../data/wordBank', () => ({
-  default: [
-    { word: 'abandon', pos: 'verb', definition: 'to leave something permanently', example: 'She had to abandon her car in the snow.' },
-    { word: 'able', pos: 'adjective', definition: 'having the skill to do something', example: 'He was able to fix the car himself.' },
-  ]
+vi.mock('../context/ContentContext', () => ({
+  useContent: () => ({ words: [{ word: 'drop', display: 'drop', ready: true, forms: [] }], status: 'idle' }),
+  useCard: () => ({ card: CARD, error: null }),
 }))
-vi.mock('../services/sentenceCheck', () => ({
-  checkSentence: vi.fn(),
-}))
+vi.mock('../services/sentenceCheck', () => ({ checkSentence: vi.fn() }))
+vi.mock('../services/audio', () => ({ play: vi.fn(), stop: vi.fn(), onPlayingChange: () => () => {} }))
 
-const mockSetStatus = vi.fn()
-const mockSaveDraft = vi.fn()
-const mockSaveFeedback = vi.fn()
-const mockMarkMastered = vi.fn()
-const mockConfirmReview = vi.fn()
-const mockResetToLearning = vi.fn()
+const progress = {
+  saveDraft: vi.fn(), saveFeedback: vi.fn(), setStatus: vi.fn(), markMastered: vi.fn(),
+  confirmReview: vi.fn(), resetToLearning: vi.fn(),
+}
 let mockRecords = {}
 vi.mock('../context/ProgressContext', () => ({
-  useProgressContext: () => ({ records: mockRecords, setStatus: mockSetStatus, saveDraft: mockSaveDraft, saveFeedback: mockSaveFeedback, markMastered: mockMarkMastered, confirmReview: mockConfirmReview, resetToLearning: mockResetToLearning, masteredCount: 0 })
+  useProgressContext: () => ({ records: mockRecords, syncState: 'idle', masteredCount: 5, ...progress }),
 }))
+
+function renderStudy() {
+  return render(<MemoryRouter initialEntries={['/study']}><Study /></MemoryRouter>)
+}
+
+function type(value) {
+  fireEvent.change(screen.getByLabelText('Your sentence'), { target: { value } })
+}
 
 describe('Study', () => {
   beforeEach(() => {
     mockRecords = {}
-    mockSetStatus.mockClear()
-    mockSaveDraft.mockClear()
-    mockMarkMastered.mockClear()
-    mockConfirmReview.mockClear()
-    mockResetToLearning.mockClear()
-    // Simulate the real saveFeedback: updates acceptedAttempts in mockRecords.
-    mockSaveFeedback.mockImplementation((word, feedbackResult) => {
-      const prev = mockRecords[word] || {}
-      mockRecords[word] = {
-        ...prev,
-        acceptedAttempts: (prev.acceptedAttempts || 0) + (feedbackResult?.is_acceptable ? 1 : 0),
-      }
+    vi.clearAllMocks()
+  })
+
+  it('shows one meaning and one example at a time', () => {
+    renderStudy()
+    expect(screen.getByRole('heading', { name: 'drop' })).toBeInTheDocument()
+    expect(screen.getByText('to let something fall')).toBeInTheDocument()
+    expect(screen.getByText('dropped').tagName).toBe('MARK')
+    expect(screen.queryByText(/do not/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Another example' }))
+    expect(screen.getByText(/do not/)).toBeInTheDocument()
+  })
+
+  it('only sends a sentence that uses the word, inflections included', () => {
+    renderStudy()
+    const send = screen.getByRole('button', { name: 'Check my sentence' })
+    type('I lost my keys yesterday.')
+    expect(send).toBeDisabled()
+    expect(screen.getByText('Include “drop” to check your sentence')).toBeInTheDocument()
+    type('Prices dropped a lot this month.')
+    expect(send).toBeEnabled()
+  })
+
+  it('checks the sentence against the shown meaning and saves the result', async () => {
+    checkSentence.mockResolvedValue({ is_acceptable: true, grammar_feedback: '', naturalness_feedback: 'Natural use.', suggested_revision: '' })
+    renderStudy()
+    type('Prices dropped a lot this month.')
+    fireEvent.click(screen.getByRole('button', { name: 'Check my sentence' }))
+    expect(screen.getByLabelText('Checking')).toBeInTheDocument()
+    await waitFor(() => expect(progress.saveFeedback).toHaveBeenCalled())
+    expect(checkSentence).toHaveBeenCalledWith({
+      word: 'drop', definition: 'to let something fall',
+      referenceSentence: 'I dropped my keys on the way home.', userSentence: 'Prices dropped a lot this month.',
     })
-    vi.mocked(checkSentence).mockClear()
-    vi.mocked(checkSentence).mockResolvedValue({
-      is_acceptable: true,
-      grammar_feedback: '',
-      naturalness_feedback: '',
-      suggested_revision: 'I am going to the park.',
-    })
+    expect(progress.saveFeedback.mock.calls[0][0]).toBe('drop')
   })
 
-  function getSentenceInput() {
-    return screen.getByLabelText(/write a sentence using the word/i)
-  }
-
-  function renderStudy(initialEntries = ['/']) {
-    return render(
-      <MemoryRouter initialEntries={initialEntries}>
-        <Study />
-      </MemoryRouter>
-    )
-  }
-
-  it('shows the word and its definition', () => {
-    renderStudy()
-    // One of the two words must be shown
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    expect(shown).toBeTruthy()
-    expect(screen.getByText(shown.word)).toBeInTheDocument()
-  })
-
-  it('shows the reference sentence immediately', () => {
-    renderStudy()
-    expect(screen.getByText(/She had to abandon|He was able to fix/)).toBeInTheDocument()
-    expect(screen.getByText(/another natural meaning/i)).toBeInTheDocument()
-  })
-
-  it('shows the last saved feedback before a new self-check', () => {
+  it('shows saved sentences as a conversation', () => {
     mockRecords = {
-      abandon: {
-        status: 'learning',
-        draft: 'The word abandon is in this sentence.',
-        lastCheckedSentence: 'The word abandon is in this sentence.',
-        acceptedAttempts: 2,
-        feedback: {
-          isAcceptable: false,
-          grammarFeedback: 'Use a more natural sentence pattern.',
-          suggestedRevision: 'They had to abandon the trip because of the storm.',
-        },
-      },
-      able: {
-        status: 'learning',
-        draft: 'He is able to finish the work tonight.',
-        lastCheckedSentence: 'He is able to finish the work tonight.',
-        acceptedAttempts: 2,
-        feedback: {
-          isAcceptable: false,
-          grammarFeedback: 'Use a more natural sentence pattern.',
-          suggestedRevision: 'She was able to finish the work before dinner.',
-        },
-      },
-    }
-    renderStudy()
-    expect(screen.getByText(/last check: this sentence still needed revision\./i)).toBeInTheDocument()
-    expect(screen.getByText(/last checked sentence:/i)).toBeInTheDocument()
-    expect(screen.getByText(/use a more natural sentence pattern\./i)).toBeInTheDocument()
-    expect(screen.getByText(/suggested:/i)).toBeInTheDocument()
-    expect(screen.getByText(/accepted checks: 2\/3/i)).toBeInTheDocument()
-  })
-
-  it('reveals AI feedback after clicking Self-check', async () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    expect(await screen.findByText(/this sentence is acceptable for study use/i)).toBeInTheDocument()
-    expect(screen.getByText(/suggested: i am going to the park\./i)).toBeInTheDocument()
-    expect(mockSaveFeedback).toHaveBeenCalledWith(
-      shown.word,
-      expect.objectContaining({ is_acceptable: true }),
-      `The word ${shown.word} is in this sentence.`
-    )
-  })
-
-  it('supports Cmd/Ctrl+Enter as a self-check shortcut', async () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.keyDown(getSentenceInput(), { key: 'Enter', ctrlKey: true })
-
-    expect(await screen.findByText(/this sentence is acceptable for study use/i)).toBeInTheDocument()
-    expect(checkSentence).toHaveBeenCalledTimes(1)
-  })
-
-  it('supports Cmd/Ctrl+Shift+Enter as a mastered shortcut', async () => {
-    mockRecords = {
-      abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },
-      able: { acceptedAttempts: 2, lastCheckedSentence: '' },
-    }
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    await screen.findByText(/suggested:/i)
-
-    // Now masteredReady should be true (acceptedAttempts=3, session accepted, feedback acceptable)
-    fireEvent.keyDown(getSentenceInput(), { key: 'Enter', ctrlKey: true, shiftKey: true })
-    expect(mockMarkMastered).toHaveBeenCalledWith(shown.word)
-  })
-
-  it('calls markMastered when Mastered is clicked', async () => {
-    mockRecords = {
-      abandon: { acceptedAttempts: 2, lastCheckedSentence: '' },
-      able: { acceptedAttempts: 2, lastCheckedSentence: '' },
-    }
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    await screen.findByText(/suggested:/i)
-    fireEvent.click(screen.getByRole('button', { name: /mastered/i }))
-    expect(mockMarkMastered).toHaveBeenCalledWith(shown.word)
-  })
-
-  it('calls setStatus learning when Next is clicked', async () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    await screen.findByText(/suggested:/i)
-    fireEvent.click(screen.getByRole('button', { name: /next/i }))
-    expect(mockSetStatus).toHaveBeenCalledWith(shown.word, 'learning')
-  })
-
-  it('advances to the next word after clicking Next', async () => {
-    renderStudy()
-    const first = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    const other = MOCK_WORDS.find(w => w.word !== first.word)
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${first.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    await screen.findByText(/suggested:/i)
-    fireEvent.click(screen.getByRole('button', { name: /next/i }))
-    expect(screen.getByText(other.word)).toBeInTheDocument()
-  })
-
-  it('disables Self-check until the user writes a sentence containing the target word', () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    const button = screen.getByRole('button', { name: /self-check/i })
-    expect(button).toBeDisabled()
-
-    fireEvent.change(getSentenceInput(), { target: { value: 'I can use this word.' } })
-    expect(screen.getByText(new RegExp(`include the word "${shown.word}"`, 'i'))).toBeInTheDocument()
-    expect(button).toBeDisabled()
-
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    expect(button).not.toBeDisabled()
-  })
-
-  it('saves drafts while typing', () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    expect(mockSaveDraft).toHaveBeenLastCalledWith(shown.word, `The word ${shown.word} is in this sentence.`)
-  })
-
-  it('shows an AI error when the check fails', async () => {
-    vi.mocked(checkSentence).mockRejectedValueOnce(new Error('Network error'))
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-    expect(await screen.findByText(/ai feedback is temporarily unavailable/i)).toBeInTheDocument()
-  })
-
-  it('keeps Mastered disabled until enough acceptable checks are recorded', async () => {
-    renderStudy()
-    const shown = MOCK_WORDS.find(w => screen.queryByText(w.word))
-    fireEvent.change(getSentenceInput(), { target: { value: `The word ${shown.word} is in this sentence.` } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-
-    expect(await screen.findByText(/acceptable checks: 1\/3/i)).toBeInTheDocument()
-    expect(screen.getByText(/complete 2 more acceptable self-check/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /mastered/i })).toBeDisabled()
-  })
-
-  it('does not send repeated accepted sentences to AI checking', async () => {
-    mockRecords = {
-      abandon: {
-        status: 'learning',
-        draft: 'The hikers abandon the trail.',
-        acceptedAttempts: 1,
+      drop: {
+        status: 'learning', acceptedAttempts: 1,
         sentenceAttempts: [
-          {
-            sentence: 'The hikers abandon the trail.',
-            normalizedSentence: 'the hikers abandon the trail.',
-            isAcceptable: true,
-          },
+          { sentence: 'I drop the kids at school.', normalizedSentence: 'i drop the kids at school.', isAcceptable: true, feedbackNaturalness: 'Good everyday use.', createdAt: '2026-09-01T10:00:00Z' },
+          { sentence: 'I dropping it.', normalizedSentence: 'i dropping it.', isAcceptable: false, feedbackGrammar: 'Use a past or present form.', feedbackRevision: 'I dropped it.', createdAt: '2026-09-01T09:00:00Z' },
         ],
       },
     }
-    renderStudy(['/study?word=abandon'])
-    fireEvent.change(getSentenceInput(), { target: { value: '  the hikers abandon the trail.  ' } })
-    fireEvent.click(screen.getByRole('button', { name: /self-check/i }))
-
-    expect(checkSentence).not.toHaveBeenCalled()
-    expect(await screen.findByText(/repeats an accepted sentence/i)).toBeInTheDocument()
-    expect(mockSaveFeedback).toHaveBeenCalledWith(
-      'abandon',
-      expect.objectContaining({ is_acceptable: false }),
-      '  the hikers abandon the trail.  '
-    )
+    renderStudy()
+    const bubbles = screen.getAllByText(/I drop/).map(el => el.textContent)
+    expect(bubbles[0]).toBe('I dropping it.') // oldest first
+    expect(screen.getByText('Use a past or present form.')).toBeInTheDocument()
+    expect(screen.getByText('1 of 3 accepted')).toBeInTheDocument()
   })
 
-  it('can open a specific word from the word bank link', () => {
-    renderStudy(['/study?word=able'])
-    expect(screen.getByText('able')).toBeInTheDocument()
-    expect(screen.getByText(/studying this word from the word bank/i)).toBeInTheDocument()
+  it('turns a writing idea into a prompt and prefills a starter', () => {
+    renderStudy()
+    fireEvent.click(screen.getByRole('button', { name: 'Finish a sentence' }))
+    expect(screen.getByText('When prices drop, I...')).toBeInTheDocument()
+    expect(screen.getByLabelText('Your sentence')).toHaveValue('When prices drop, I ')
+  })
+
+  it('does not re-check a sentence that was already accepted', () => {
+    mockRecords = {
+      drop: { status: 'learning', acceptedAttempts: 1, sentenceAttempts: [{ sentence: 'Prices dropped a lot.', normalizedSentence: 'prices dropped a lot.', isAcceptable: true, createdAt: '2026-09-01T10:00:00Z' }] },
+    }
+    renderStudy()
+    type('Prices dropped   a lot.')
+    fireEvent.click(screen.getByRole('button', { name: 'Check my sentence' }))
+    expect(checkSentence).not.toHaveBeenCalled()
+    expect(screen.getByText('You already used this sentence. Write a new one to make progress.')).toBeInTheDocument()
+  })
+
+  it('offers mastery once three sentences are accepted', async () => {
+    mockRecords = { drop: { status: 'learning', acceptedAttempts: 3, feedback: { isAcceptable: true }, sentenceAttempts: [] } }
+    renderStudy()
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Mark as mastered' })))
+    expect(progress.markMastered).toHaveBeenCalledWith('drop')
   })
 })

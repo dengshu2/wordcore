@@ -26,7 +26,7 @@ export default function Login() {
   const displayError = localError || error
 
   return (
-    <div className="login-layout">
+    <main id="main-content" className="login">
       <div className="login-card">
         <div className="login-brand">
           <div className="login-brand__name">WordCore</div>
@@ -37,7 +37,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} noValidate className="login-form">
           <div>
-            <label htmlFor="login-email" className="label label--block">
+            <label htmlFor="login-email" className="field-label">
               Email
             </label>
             <input
@@ -46,14 +46,14 @@ export default function Login() {
               autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="input"
+              className="field"
               placeholder="you@example.com"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="login-password" className="label label--block">
+            <label htmlFor="login-password" className="field-label">
               Password
             </label>
             <input
@@ -62,14 +62,14 @@ export default function Login() {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="input"
+              className="field"
               placeholder="8+ characters"
               required
             />
           </div>
 
           {displayError && (
-            <div className="notice notice--warn" role="alert">
+            <div className="notice" role="alert">
               {displayError}
             </div>
           )}
@@ -78,7 +78,7 @@ export default function Login() {
             id="login-submit"
             type="submit"
             disabled={loading}
-            className="btn btn--primary w-full"
+            className="btn primary wide"
           >
             {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
@@ -98,6 +98,6 @@ export default function Login() {
           </button>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

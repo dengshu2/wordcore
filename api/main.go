@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -105,6 +106,11 @@ func main() {
 		model = "google/gemini-2.5-flash"
 	}
 
+	contentDir := envOr("CONTENT_DIR", "./content")
+	ttsProvider := envOr("TTS_PROVIDER", "mimo")
+	ttsVoice := envOr("TTS_VOICE", "Mia")
+	ttsDailyCap, _ := strconv.Atoi(envOr("TTS_DAILY_CAP", "500"))
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -126,7 +132,21 @@ func main() {
 	// ── Dependencies ─────────────────────────────────────────────────
 	auth := NewAuthService(db, jwtSecret)
 	or := NewOpenRouterClient(apiKey, model)
-	h := &handler{db: db, auth: auth, or: or}
+	tts := NewTTSService(contentDir, ttsProvider, ttsVoice, os.Getenv("MIMO_API_KEY"), os.Getenv("DOUBAO_TTS_API_KEY"), ttsDailyCap)
+	content := NewContentStore(contentDir, tts)
+	h := &handler{db: db, auth: auth, or: or, content: content, tts: tts, icons: NewIconStore(contentDir)}
+
+	// Progress recorded under inflected forms moves onto the new headwords once
+	// content is available; retried after each reload until it has run.
+	migrate := func() {
+		if err := migrateRecordsToLemmas(db, content.Sources()); err != nil {
+			log.Printf("lemma migration failed: %v", err)
+		}
+	}
+	migrate()
+	stopContent := make(chan struct{})
+	defer close(stopContent)
+	go content.Watch(3*time.Minute, stopContent, migrate)
 
 	// ── Router ───────────────────────────────────────────────────────
 	r := chi.NewRouter()
@@ -154,9 +174,17 @@ func main() {
 		r.Post("/auth/login", h.handleLogin)
 	})
 
+	// Recordings are content-addressed and public: <audio> cannot send the auth header.
+	r.Get("/audio/{file}", h.handleAudio)
+	r.Get("/icons/{file}", h.handleIcon)
+
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(jwtMiddleware(auth))
+
+		r.Get("/api/words", h.handleWords)
+		r.Get("/api/cards/{word}", h.handleCard)
+		r.With(ttsRateLimiter()).Post("/api/tts", h.handleTTS)
 
 		r.Get("/api/records", h.handleGetRecords)
 		r.Get("/api/records/export", h.handleExportCSV) // must be before /{word}
@@ -202,6 +230,13 @@ func main() {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 	log.Println("Server stopped")
+}
+
+func envOr(name, fallback string) string {
+	if v := os.Getenv(name); v != "" {
+		return v
+	}
+	return fallback
 }
 
 // parseOrigins splits a comma-separated string into a set of allowed origins.

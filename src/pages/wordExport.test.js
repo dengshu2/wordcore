@@ -2,69 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { buildWordCsv, buildWordRecords } from './wordExport'
 
 const WORDS = [
-  { word: 'apple', pos: 'noun', definition: 'a fruit', example: 'I eat an apple every day.' },
-  { word: 'run', pos: 'verb', definition: 'move fast', example: 'She runs every morning.' },
+  { word: 'apple', display: 'apple', level: 'A1' },
+  { word: 'january', display: 'January', level: 'A1' },
 ]
 
-describe('buildWordRecords', () => {
-  it('combines word data and learning records', () => {
-    expect(
-      buildWordRecords(WORDS, {
-        apple: {
-          status: 'mastered',
-          sentenceAttempts: [
-            {
-              sentence: 'I eat an apple every morning.',
-              isAcceptable: true,
-            },
-          ],
-        },
-        run: { draft: 'I run after school.' },
-      })
-    ).toEqual([
-      {
-        word: 'apple',
-        pos: 'noun',
-        definition: 'a fruit',
-        reference_sentence: 'I eat an apple every day.',
-        my_sentence: '',
-        accepted_sentences: 'I eat an apple every morning.',
-        accepted_sentence_count: 1,
-        status: 'mastered',
-        attempts: 0,
-        accepted_attempts: 0,
-        updated_at: '',
-      },
-      {
-        word: 'run',
-        pos: 'verb',
-        definition: 'move fast',
-        reference_sentence: 'She runs every morning.',
-        my_sentence: 'I run after school.',
-        accepted_sentences: '',
-        accepted_sentence_count: 0,
-        status: 'learning',
-        attempts: 0,
-        accepted_attempts: 0,
-        updated_at: '',
-      },
-    ])
+describe('wordExport', () => {
+  it('combines word entries with learning records', () => {
+    const rows = buildWordRecords(WORDS, {
+      apple: { status: 'mastered', attempts: 3, acceptedAttempts: 3, sentenceAttempts: [{ sentence: 'I eat an apple every morning.', isAcceptable: true }] },
+      january: { status: 'learning', draft: 'January is cold.' },
+    })
+    expect(rows[0]).toMatchObject({ word: 'apple', status: 'mastered', accepted_sentences: 'I eat an apple every morning.', accepted_sentence_count: 1 })
+    expect(rows[1]).toMatchObject({ word: 'January', status: 'learning', my_sentence: 'January is cold.', accepted_sentence_count: 0 })
   })
-})
 
-describe('buildWordCsv', () => {
-  it('returns a CSV string with escaped values', () => {
-    const csv = buildWordCsv(
-      WORDS,
-      {
-        apple: {
-          status: 'mastered',
-          draft: 'I said "apple", then ate it.',
-        },
-      }
-    )
-
-    expect(csv).toContain('word,pos,definition,reference_sentence,my_sentence,accepted_sentences,accepted_sentence_count,status,attempts,accepted_attempts,updated_at')
-    expect(csv).toContain('"I said ""apple"", then ate it."')
+  it('escapes commas and quotes in CSV cells', () => {
+    const csv = buildWordCsv([{ word: 'say', display: 'say' }], { say: { draft: 'She said, "hi".' } })
+    expect(csv.split('\n')[1]).toContain('"She said, ""hi""."')
   })
 })

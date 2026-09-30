@@ -1,43 +1,29 @@
 function escapeCsv(value) {
   const text = String(value ?? '')
-  if (/[",\n]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`
-  }
-  return text
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 
-function getRecord(records, word) {
-  return records[word] || {}
-}
-
-function getAcceptedSentences(record = {}) {
-  return (record.sentenceAttempts || [])
-    .filter(attempt => attempt.isAcceptable)
-    .map(attempt => attempt.sentence)
-}
+const HEADER = ['word', 'level', 'status', 'my_sentence', 'accepted_sentences', 'accepted_sentence_count', 'attempts', 'accepted_attempts', 'updated_at']
 
 export function buildWordRecords(words, records) {
-  return words.map(word => ({
-    word: word.word,
-    pos: word.pos,
-    definition: word.definition,
-    reference_sentence: word.example,
-    my_sentence: getRecord(records, word.word).draft || '',
-    accepted_sentences: getAcceptedSentences(getRecord(records, word.word)).join(' | '),
-    accepted_sentence_count: getAcceptedSentences(getRecord(records, word.word)).length,
-    status: getRecord(records, word.word).status === 'mastered' ? 'mastered' : 'learning',
-    attempts: getRecord(records, word.word).attempts || 0,
-    accepted_attempts: getRecord(records, word.word).acceptedAttempts || 0,
-    updated_at: getRecord(records, word.word).updatedAt || '',
-  }))
+  return words.map(w => {
+    const r = records[w.word] || {}
+    const accepted = (r.sentenceAttempts || []).filter(a => a.isAcceptable).map(a => a.sentence)
+    return {
+      word: w.display || w.word,
+      level: w.level || '',
+      status: r.status || 'new',
+      my_sentence: r.draft || '',
+      accepted_sentences: accepted.join(' | '),
+      accepted_sentence_count: accepted.length,
+      attempts: r.attempts || 0,
+      accepted_attempts: r.acceptedAttempts || 0,
+      updated_at: r.updatedAt || '',
+    }
+  })
 }
 
 export function buildWordCsv(words, records) {
-  const rowsData = buildWordRecords(words, records)
-  const header = ['word', 'pos', 'definition', 'reference_sentence', 'my_sentence', 'accepted_sentences', 'accepted_sentence_count', 'status', 'attempts', 'accepted_attempts', 'updated_at']
-  const rows = rowsData.map(record =>
-    header.map(column => escapeCsv(record[column])).join(',')
-  )
-
-  return [header.join(','), ...rows].join('\n')
+  const rows = buildWordRecords(words, records).map(row => HEADER.map(col => escapeCsv(row[col])).join(','))
+  return [HEADER.join(','), ...rows].join('\n')
 }

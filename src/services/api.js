@@ -102,3 +102,24 @@ export async function checkSentenceAPI({ word, definition, referenceSentence, us
         body: JSON.stringify({ word, definition, referenceSentence, userSentence }),
     })
 }
+
+// ── Study content ─────────────────────────────────────────────────────────────
+
+/** Every headword in study order: [{ word, key, rank, level, kind, pos, ready }]. */
+export async function fetchWords() {
+    const data = await request('/api/words')
+    return data.words || []
+}
+
+/** One study card, with `audio: { word: clip, examples: [clip] }`. */
+export async function fetchCard(word) {
+    return request(`/api/cards/${encodeURIComponent(word)}`)
+}
+
+/** Returns a playable clip for any text, recording it on the server when needed. */
+export async function requestClip(text, kind = 'sentence') {
+    return request('/api/tts', {
+        method: 'POST',
+        body: JSON.stringify({ text, kind }),
+    })
+}

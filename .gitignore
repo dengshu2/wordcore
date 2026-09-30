@@ -37,3 +37,7 @@ api/wordcore-api
 api/wordcore
 api/vendor/
 
+
+# Generated study content (cards, audio) from scripts/content, and local DB dumps
+/content/
+/backups/

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getNextWord, getEarliestReviewDate, includesTargetWord } from './studySession'
+import { getNextWord, getEarliestReviewDate } from './studySession'
 
 const WORDS = [
   { word: 'alpha' },
@@ -90,15 +90,5 @@ describe('getEarliestReviewDate', () => {
 
   it('returns null when no mastered words exist', () => {
     expect(getEarliestReviewDate(WORDS, {})).toBeNull()
-  })
-})
-
-describe('includesTargetWord', () => {
-  it('matches the target word case-insensitively', () => {
-    expect(includesTargetWord('I can ABANDON that plan.', 'abandon')).toBe(true)
-  })
-
-  it('rejects sentences that do not contain the target word as a standalone word', () => {
-    expect(includesTargetWord('She is able to do it.', 'ab')).toBe(false)
   })
 })

@@ -8,9 +8,12 @@ import (
 
 // handler holds shared dependencies for all HTTP handlers.
 type handler struct {
-	db   *sql.DB
-	auth *AuthService
-	or   *OpenRouterClient
+	db      *sql.DB
+	auth    *AuthService
+	or      *OpenRouterClient
+	content *ContentStore
+	tts     *TTSService
+	icons   *IconStore
 }
 
 // respondJSON writes a JSON response.

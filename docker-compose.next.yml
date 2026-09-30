@@ -1,0 +1,33 @@
+# Staging copy of WordCore at wordcore-next.dengshu.ovh.
+# Run from the `next` worktree:  docker compose -p wordcore-next -f docker-compose.next.yml up -d --build
+# Uses its own database (wordcore_next, a copy of production) and shares the
+# generated study content with production.
+services:
+  wordcore-next:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      args:
+        VITE_UMAMI_WEBSITE_ID: ""
+    container_name: wordcore-next
+    restart: unless-stopped
+    user: "1001:1001"
+    ports:
+      - "127.0.0.1:7083:8080"
+    env_file: .env
+    environment:
+      - PORT=8080
+      - STATIC_DIR=/app/static
+      - CONTENT_DIR=/app/content
+      - TZ=Asia/Shanghai
+    volumes:
+      - /srv/stacks/wordcore/content:/app/content
+    networks:
+      - proxy-network
+      - db-sync-net
+
+networks:
+  proxy-network:
+    external: true
+  db-sync-net:
+    external: true

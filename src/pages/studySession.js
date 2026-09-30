@@ -64,11 +64,3 @@ export function getEarliestReviewDate(words, records) {
   }
   return earliest
 }
-
-export function includesTargetWord(sentence, targetWord) {
-  if (!sentence.trim() || !targetWord) return false
-
-  const escapedTarget = targetWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const pattern = new RegExp(`\\b${escapedTarget}\\b`, 'i')
-  return pattern.test(sentence)
-}
