@@ -29,6 +29,7 @@ export default function Login() {
     <main id="main-content" className="login">
       <div className="login-card">
         <div className="login-brand">
+          <span className="mark" aria-hidden="true">W</span>
           <div className="login-brand__name">WordCore</div>
           <div className="login-brand__sub">
             {mode === 'login' ? 'Welcome back.' : 'Create your account.'}

@@ -11,6 +11,18 @@ const IDEAS = [
 // box is empty, so there is nothing to open or dismiss.
 export default function Composer({ value, onChange, onSend, onIdea, onMastered, canSend, busy, hint, placeholder, focusSignal }) {
   const ref = useRef(null)
+  const dockRef = useRef(null)
+
+  // The page leaves exactly this much room under its content, so the actions
+  // end just above the composer whatever it currently shows.
+  useEffect(() => {
+    const dock = dockRef.current
+    if (!dock || typeof ResizeObserver === 'undefined') return
+    const root = document.documentElement
+    const ro = new ResizeObserver(() => root.style.setProperty('--dock-h', `${dock.offsetHeight}px`))
+    ro.observe(dock)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     const ta = ref.current
@@ -27,7 +39,10 @@ export default function Composer({ value, onChange, onSend, onIdea, onMastered, 
   }, [focusSignal])
 
   function handleKeyDown(e) {
-    if (e.key !== 'Enter' || e.nativeEvent.isComposing) return
+    // An Enter that confirms an input-method candidate is not a send. Safari ends
+    // the composition before that keydown, so isComposing is already false there
+    // and only keyCode 229 ("being processed by the IME") gives it away.
+    if (e.key !== 'Enter' || e.nativeEvent.isComposing || e.keyCode === 229) return
     if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
       e.preventDefault()
       onMastered?.()
@@ -40,7 +55,7 @@ export default function Composer({ value, onChange, onSend, onIdea, onMastered, 
   }
 
   return (
-    <div className="dock">
+    <div className="dock" ref={dockRef}>
       <div className="dock-in">
         {!value.trim() && !busy && (
           <div className="ideas" role="group" aria-label="Writing ideas">
@@ -58,6 +73,9 @@ export default function Composer({ value, onChange, onSend, onIdea, onMastered, 
             value={value}
             placeholder={placeholder}
             aria-label="Your sentence"
+            enterKeyHint="send"
+            autoComplete="off"
+            autoCapitalize="sentences"
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
           />

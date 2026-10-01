@@ -4,6 +4,33 @@ import { useAuth } from './AuthContext'
 
 const ContentContext = createContext(null)
 
+// The word list barely changes between visits, so the last copy is shown at once
+// and refreshed in the background; the last studied word's card is fetched
+// while progress is still loading, since it is usually the word that opens.
+const WORDS_KEY = 'wc-words-v1'
+const LAST_KEY = 'wc-last-word'
+
+function readCache(key) {
+  try { return JSON.parse(localStorage.getItem(key)) } catch { return null }
+}
+
+function writeCache(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* storage full or blocked */ }
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- tiny helper shared with Study
+export function rememberWord(word) {
+  writeCache(LAST_KEY, word)
+}
+
+// Warms the browser cache with what a card shows first: its icon and the word audio.
+function warm(card) {
+  const icon = card.visual?.kind === 'icon' && card.visual.icons?.[0]
+  if (icon) new Image().src = `/icons/${icon}.svg`
+  const clip = card.audio?.word
+  if (clip?.ready && clip.url) fetch(clip.url, { priority: 'low' }).catch(() => {})
+}
+
 // Word entries use the lowercase record key as `word` so the scheduling and
 // progress code can index records[word.word]; `display` keeps the proper case.
 function toEntry(w) {
@@ -12,8 +39,8 @@ function toEntry(w) {
 
 export function ContentProvider({ children }) {
   const { user } = useAuth()
-  const [words, setWords] = useState([])
-  const [status, setStatus] = useState(user ? 'loading' : 'idle') // idle | loading | error
+  const [words, setWords] = useState(() => (user && readCache(WORDS_KEY)) || [])
+  const [status, setStatus] = useState(() => (user && !readCache(WORDS_KEY) ? 'loading' : 'idle')) // idle | loading | error
   const cards = useRef(new Map())
 
   useEffect(() => {
@@ -23,14 +50,17 @@ export function ContentProvider({ children }) {
       return
     }
     let cancelled = false
-    setStatus('loading')
+    const cached = readCache(WORDS_KEY)
+    if (!cached) setStatus('loading')
     fetchWords()
       .then(list => {
         if (cancelled) return
-        setWords(list.map(toEntry))
+        const entries = list.map(toEntry)
+        writeCache(WORDS_KEY, entries)
+        setWords(entries)
         setStatus('idle')
       })
-      .catch(() => { if (!cancelled) setStatus('error') })
+      .catch(() => { if (!cancelled && !cached) setStatus('error') })
     return () => { cancelled = true }
   }, [user])
 
@@ -48,8 +78,17 @@ export function ContentProvider({ children }) {
     return cards.current.get(key)
   }, [])
 
+  const prefetch = useCallback(word => {
+    getCard(word).then(warm, () => {})
+  }, [getCard])
+
+  useEffect(() => {
+    const last = user && readCache(LAST_KEY)
+    if (last) prefetch(last)
+  }, [user, prefetch])
+
   return (
-    <ContentContext.Provider value={{ words, status, getCard }}>
+    <ContentContext.Provider value={{ words, status, getCard, prefetch }}>
       {children}
     </ContentContext.Provider>
   )

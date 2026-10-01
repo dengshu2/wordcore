@@ -67,7 +67,15 @@ svg.i--sm { width: 16px; height: 16px; }
 
 .app { max-width: 600px; margin: 0 auto; padding-inline: 16px; }
 .page { display: grid; gap: 28px; padding-block: 4vh 56px; }
-.page--study { padding-bottom: 220px; }
+/* The study page fills the screen so the actions (Next word, Mark as mastered)
+   sit just above the composer even under a short card. --dock-h is the
+   composer's measured height (see Composer). */
+.page--study {
+  display: flex; flex-direction: column;
+  min-height: calc(100dvh - 70px - env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--dock-h, 124px) + 2px);
+}
+.page--study > .actions { margin-top: auto; justify-content: flex-end; }
 .page--message { padding-top: 18vh; text-align: center; gap: 10px; justify-items: center; }
 .page--message h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
 .page--message p { margin: 0; color: var(--sub); }
@@ -177,8 +185,10 @@ mark { background: none; color: var(--green); font-weight: 650; }
 
 /* ── Study: composer ────────────────────────────────────────────────────── */
 
+/* --kb lifts the composer above an on-screen keyboard where the browser does
+   not resize the page for it (iOS Safari); see lib/keyboard.js. */
 .dock {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); z-index: 6;
   padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(transparent, var(--bg) 30%);
 }
@@ -251,6 +261,10 @@ mark { background: none; color: var(--green); font-weight: 650; }
 
 .login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
 .login-card { width: 100%; max-width: 380px; display: grid; gap: 24px; }
+.login-brand { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.login-brand .mark { margin-bottom: 12px; }
+/* WordCore's mark, the app icon in miniature (Quiet UI q-mark--lg); the colour stays in dark mode. */
+.mark { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: #1f6a52; color: #fff; font-size: 26px; font-weight: 650; line-height: 1; }
 .login-brand__name { font-size: 30px; font-weight: 650; letter-spacing: -0.03em; }
 .login-brand__sub { color: var(--sub); }
 .login-form { display: grid; gap: 14px; }
@@ -270,4 +284,17 @@ mark { background: none; color: var(--green); font-weight: 650; }
 @media (prefers-reduced-motion: no-preference) {
   .skeleton { animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 50% { opacity: 0.55; } }
+  .card--enter { animation: card-in 0.24s ease-out; }
+  @keyframes card-in { from { opacity: 0; transform: translateY(8px); } }
 }
+
+/* Waiting for a card: the frame stays, and three dots fade in only if the
+   wait lasts long enough to notice (most cards are prefetched). */
+.waiting { flex: 1; display: grid; place-items: center; min-height: 30vh; }
+.waiting .typing { animation: appear 0.2s ease-out 0.4s both; }
+@keyframes appear { from { opacity: 0; } }
+.composer-blank { display: block; height: 40px; }
+
+/* index.html paints this frame before any script runs; React replaces it. */
+.boot { display: none; }
+.booting .boot { display: block; }

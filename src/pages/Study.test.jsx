@@ -20,8 +20,9 @@ const CARD = {
 }
 
 vi.mock('../context/ContentContext', () => ({
-  useContent: () => ({ words: [{ word: 'drop', display: 'drop', ready: true, forms: [] }], status: 'idle' }),
+  useContent: () => ({ words: [{ word: 'drop', display: 'drop', ready: true, forms: [] }], status: 'idle', prefetch: () => {} }),
   useCard: () => ({ card: CARD, error: null }),
+  rememberWord: () => {},
 }))
 vi.mock('../services/sentenceCheck', () => ({ checkSentence: vi.fn() }))
 vi.mock('../services/audio', () => ({ play: vi.fn(), stop: vi.fn(), onPlayingChange: () => () => {} }))

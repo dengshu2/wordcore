@@ -17,6 +17,7 @@ export function setToken(t) {
 }
 export function clearToken() {
     localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem('wc-last-word')
 }
 
 async function request(path, options = {}) {

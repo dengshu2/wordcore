@@ -3,22 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Learn English words by writing your own sentences: clear examples, natural audio and quick feedback." />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png?v=2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>WordCore</title>
+    <script>
+      // Signed-in visits to the study page show its frame straight away (see #root).
+      try { if (localStorage.getItem('wc_token') && /^\/(study\/?)?$/.test(location.pathname)) document.documentElement.classList.add('booting') } catch { /* storage blocked */ }
+    </script>
     <script defer src="https://umami.dengshu.ovh/script.js" data-website-id="%VITE_UMAMI_WEBSITE_ID%"></script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
-    <div id="root"></div>
+    <div id="root">
+      <!-- The study page's frame, painted before any script runs; React replaces it. -->
+      <div class="app boot" aria-hidden="true">
+        <header class="top"><span class="round"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span></span><span></span></header>
+        <main class="page page--study"><div class="waiting"><span class="typing"><i></i><i></i><i></i></span></div></main>
+        <div class="dock"><div class="dock-in"><div class="ideas"><span class="idea">Answer a question</span><span class="idea">Finish a sentence</span><span class="idea">Rewrite</span></div><div class="composer"><span class="composer-blank"></span><button type="button" class="send" disabled tabindex="-1"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div></div></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
