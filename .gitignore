@@ -41,3 +41,7 @@ api/vendor/
 # Generated study content (cards, audio) from scripts/content, and local DB dumps
 /content/
 /backups/
+
+# Python caches, and the local pilot from the v2 card and voice experiments
+__pycache__/
+/scripts/card-pilot/
