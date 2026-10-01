@@ -18,8 +18,6 @@ The interface follows the shared Quiet UI rules: one column, one scroll, no pop-
 One container serves the frontend and the API from the same origin.
 
 ```
-wordcore.dengshu.ovh
-       │
   Docker container (Go + chi)
   ├── React SPA (dist/ → /app/static)
   ├── POST /auth/register, /auth/login

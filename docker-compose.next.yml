@@ -1,4 +1,4 @@
-# Staging copy of WordCore at wordcore-next.dengshu.ovh.
+# Staging copy of WordCore, served on its own subdomain.
 # Run from the `next` worktree:  docker compose -p wordcore-next -f docker-compose.next.yml up -d --build
 # Uses its own database (wordcore_next, a copy of production) and shares the
 # generated study content with production.
