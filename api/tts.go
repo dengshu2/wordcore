@@ -152,7 +152,21 @@ func writeFileAtomic(path string, data []byte) error {
 	return os.Rename(tmp, path)
 }
 
+// romanLike matches short capitals made of Roman-numeral letters (ID, CV, CD),
+// which MiMo reads as numbers ("ID card" came out as "four hundred ninety-nine
+// card"). speakable spells them with dots so they are read as letters; only the
+// spoken text changes, never the cache key. Same rule as lib.speakable.
+var romanLike = regexp.MustCompile(`\b([IVXLCDM]{2,4})\b(\.?)`)
+
+func speakable(text string) string {
+	return romanLike.ReplaceAllStringFunc(text, func(m string) string {
+		letters := strings.TrimSuffix(m, ".")
+		return strings.Join(strings.Split(letters, ""), ".") + "."
+	})
+}
+
 func (t *TTSService) synthesize(ctx context.Context, text, style string) ([]byte, error) {
+	text = speakable(text)
 	switch t.provider {
 	case "mimo":
 		return t.mimo(ctx, text, style)

@@ -3,6 +3,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import socket
 import time
 import urllib.error
@@ -163,7 +164,19 @@ def clip_key(provider, voice, style, text):
     return hashlib.sha1(f'{provider}\n{voice}\n{style}\n{text}'.encode()).hexdigest()[:20]
 
 
+# Short capitals made of Roman-numeral letters (ID, CV, CD) are read as numbers:
+# MiMo said "four hundred ninety-nine card" for "ID card". Spelled with dots they
+# are read as letters. Only the spoken text changes; clip keys use the card text.
+# api/tts.go has the same rule (speakable).
+ROMAN_LIKE = re.compile(r'\b([IVXLCDM]{2,4})\b(\.?)')
+
+
+def speakable(text):
+    return ROMAN_LIKE.sub(lambda m: '.'.join(m.group(1)) + '.', text)
+
+
 def mimo_tts(text, voice, style):
+    text = speakable(text)
     messages = ([{'role': 'user', 'content': style}] if style else []) + [{'role': 'assistant', 'content': text}]
     d = with_retries(lambda: http_json(MIMO_URL, {'model': 'mimo-v2.5-tts', 'messages': messages,
                                                   'audio': {'format': 'mp3', 'voice': voice}},

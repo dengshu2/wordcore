@@ -201,3 +201,17 @@ func TestIconStoreFetchesOnceAndRejectsBadNames(t *testing.T) {
 		}
 	}
 }
+
+func TestSpeakableSpellsRomanLikeCapitals(t *testing.T) {
+	cases := map[string]string{
+		"Please clip your ID card to your jacket.":              "Please clip your I.D. card to your jacket.",
+		"You can't enter the building without showing your ID.": "You can't enter the building without showing your I.D.",
+		"Send your CV by Friday.":                               "Send your C.V. by Friday.",
+		"I said OK, I am fine.":                                 "I said OK, I am fine.",
+	}
+	for in, want := range cases {
+		if got := speakable(in); got != want {
+			t.Errorf("speakable(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
