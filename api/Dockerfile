@@ -18,7 +18,7 @@ ARG VITE_UMAMI_WEBSITE_ID
 RUN npm run build
 
 # ── Stage 2: Build Go backend ─────────────────────────────────────────────────
-FROM golang:1.25-alpine AS backend-builder
+FROM golang:1.26-alpine AS backend-builder
 WORKDIR /build
 
 COPY api/go.mod api/go.sum ./
@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o wordcore-api .
 
 # ── Stage 3: Runtime image ────────────────────────────────────────────────────
-FROM alpine:3.21
+FROM alpine:3.24
 RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /app
