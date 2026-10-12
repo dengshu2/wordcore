@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Study from './Study'
 import { checkSentence } from '../services/sentenceCheck'
@@ -19,9 +19,10 @@ const CARD = {
   audio: { word: { text: 'drop', kind: 'word', url: '/audio/a.mp3', ready: true }, examples: [] },
 }
 
+let mockWords = []
 vi.mock('../context/ContentContext', () => ({
-  useContent: () => ({ words: [{ word: 'drop', display: 'drop', ready: true, forms: [] }], status: 'idle', prefetch: () => {} }),
-  useCard: () => ({ card: CARD, error: null }),
+  useContent: () => ({ words: mockWords, status: 'idle', prefetch: () => {} }),
+  useCard: word => ({ card: { ...CARD, word }, error: null }),
   rememberWord: () => {},
 }))
 vi.mock('../services/sentenceCheck', () => ({ checkSentence: vi.fn() }))
@@ -47,6 +48,7 @@ function type(value) {
 describe('Study', () => {
   beforeEach(() => {
     mockRecords = {}
+    mockWords = [{ word: 'drop', display: 'drop', ready: true, forms: [] }]
     vi.clearAllMocks()
   })
 
@@ -124,5 +126,53 @@ describe('Study', () => {
     renderStudy()
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Mark as mastered' })))
     expect(progress.markMastered).toHaveBeenCalledWith('drop')
+  })
+
+  describe('keeps its place across pages', () => {
+    function Where() {
+      const { pathname, search } = useLocation()
+      return <span data-testid="where">{pathname + search}</span>
+    }
+    function Back() {
+      const navigate = useNavigate()
+      return <button type="button" onClick={() => navigate(-1)}>Back</button>
+    }
+    function renderApp() {
+      return render(
+        <MemoryRouter initialEntries={['/study']}>
+          <Routes>
+            <Route path="/study" element={<Study />} />
+            <Route path="/word/:word" element={<Back />} />
+          </Routes>
+          <Where />
+        </MemoryRouter>,
+      )
+    }
+
+    beforeEach(() => {
+      mockWords = [
+        { word: 'drop', display: 'drop', ready: true, forms: [] },
+        { word: 'keep', display: 'keep', ready: true, forms: [] },
+      ]
+    })
+
+    it('returns to the same word from Details after a sentence was sent', () => {
+      renderApp()
+      expect(screen.getByRole('heading', { name: 'drop' })).toBeInTheDocument()
+      expect(screen.getByTestId('where')).toHaveTextContent('/study?word=drop')
+      // Sending a sentence moves the word out of "new", so picking afresh would open "keep".
+      mockRecords = { drop: { status: 'learning', attempts: 1, feedback: { isAcceptable: true }, sentenceAttempts: [] } }
+      fireEvent.click(screen.getByRole('link', { name: 'Details' }))
+      expect(screen.getByTestId('where')).toHaveTextContent('/word/drop')
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+      expect(screen.getByRole('heading', { name: 'drop' })).toBeInTheDocument()
+    })
+
+    it('points the address at the next word when moving on', async () => {
+      renderApp()
+      await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Skip for now' })))
+      expect(screen.getByRole('heading', { name: 'keep' })).toBeInTheDocument()
+      expect(screen.getByTestId('where')).toHaveTextContent('/study?word=keep')
+    })
   })
 })

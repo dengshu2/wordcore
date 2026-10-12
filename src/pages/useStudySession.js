@@ -96,8 +96,8 @@ export default function useStudySession(words, records, syncState) {
   })
 
   // Gate to prevent the requestedWord effect from snapping current back to
-  // the old word during the same render cycle where advance() has already
-  // picked the next word but navigate() has not yet cleared ?word.
+  // the old word during the render where advance() has already picked the
+  // next word but the ?word change from navigate() has not landed yet.
   const advancingRef = useRef(false)
 
   const currentWordName = state.current?.word
@@ -111,6 +111,16 @@ export default function useStudySession(words, records, syncState) {
     if (!targetWord || currentWordName === targetWord.word) return
     dispatch({ type: 'reset-to-word', word: targetWord, records, openStoredResult: false })
   }, [requestedWord, currentWordName, records, words])
+
+  // Keep the shown word in the address (?word=), replacing the history entry.
+  // Study unmounts when Details or Words opens; coming back would otherwise
+  // pick a word afresh, and once a sentence is sent (or a draft typed) the
+  // word is no longer "new", so a different word would open.
+  useEffect(() => {
+    if (!currentWordName || advancingRef.current) return
+    if (requestedWord?.toLowerCase() === currentWordName.toLowerCase()) return
+    navigate(`/study?word=${encodeURIComponent(currentWordName)}`, { replace: true })
+  }, [currentWordName]) // eslint-disable-line react-hooks/exhaustive-deps -- only when the shown word changes
 
   // Recalculate the current word once records finish loading. Without this,
   // the reducer initialises `current` before records exist, so getNextWord
@@ -142,13 +152,13 @@ export default function useStudySession(words, records, syncState) {
     const recordsWithOverride = { ...records, [currentWord]: override }
     const next = getNextWord(words, recordsWithOverride, state.recentWords, currentWord)
 
-    // If we arrived via ?word=X, clear the search param so the requestedWord
-    // effect won't snap us back to the same word. Set the gate BEFORE
-    // navigate so the records-triggered effect that fires in the same render
-    // cycle bails out.
-    if (requestedWord) {
+    // Point the address at the next word (or plain /study once nothing is
+    // left) in the same step; the gate keeps the requestedWord effect from
+    // snapping back to the old ?word meanwhile.
+    const target = next ? next.word : null
+    if ((requestedWord || null) !== target) {
       advancingRef.current = true
-      navigate('/study', { replace: true })
+      navigate(target ? `/study?word=${encodeURIComponent(target)}` : '/study', { replace: true })
     }
 
     dispatch({ type: 'advance', next, records })
