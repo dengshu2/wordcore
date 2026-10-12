@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -213,5 +214,44 @@ func TestSpeakableSpellsRomanLikeCapitals(t *testing.T) {
 		if got := speakable(in); got != want {
 			t.Errorf("speakable(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestCheckSentenceRejectsCopiedExample(t *testing.T) {
+	contentDir := writeContent(t)
+	tts := NewTTSService(contentDir, "mimo", "Mia", "", "", 1)
+	// h.or is nil: a copied example must be turned away before any AI call.
+	h := &handler{content: NewContentStore(contentDir, tts), tts: tts}
+
+	for _, sentence := range []string{
+		"The result surprised everyone at work.",
+		"  the RESULT surprised everyone at work!  ",
+		"The result surprised everyone at work",
+		"The result surprised   everyone at work...",
+	} {
+		body, _ := json.Marshal(map[string]string{"word": "result", "userSentence": sentence})
+		rec := httptest.NewRecorder()
+		h.handleCheckSentence(rec, httptest.NewRequest(http.MethodPost, "/api/check-sentence", bytes.NewReader(body)))
+		var got map[string]string
+		json.Unmarshal(rec.Body.Bytes(), &got)
+		if rec.Code != http.StatusUnprocessableEntity || got["code"] != errCopiedExample {
+			t.Fatalf("%q: status %d body %v, want 422 %s", sentence, rec.Code, got, errCopiedExample)
+		}
+	}
+
+	if h.copiesExample("result", "The result surprised everyone at work today.") {
+		t.Fatal("a sentence that only starts like the example is the learner's own")
+	}
+	if !h.copiesExample("result", "Shown here.", "Shown here") {
+		t.Fatal("the reference sentence sent by the client counts as an example too")
+	}
+
+	attempts := []WordAttempt{
+		{Sentence: "The result surprised everyone at work.", IsAcceptable: true},
+		{Sentence: "The result of the vote was close.", IsAcceptable: true},
+	}
+	h.rejectCopiedExamples("result", attempts)
+	if attempts[0].IsAcceptable || !attempts[1].IsAcceptable {
+		t.Fatalf("saved attempts: only the copied example loses its pass, got %+v", attempts)
 	}
 }

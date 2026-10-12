@@ -172,6 +172,12 @@ function WordStudy({ entry, session, progress }) {
       setNotes(list => list.filter(n => n.id !== pendingId))
       saveFeedback(entry.word, result, text)
     } catch (err) {
+      if (err?.code === 'copied_example') {
+        dispatch({ type: 'check-error', message: '' })
+        setNotes(list => list.map(n => (n.id === pendingId ? { ...n, pending: false } : n)))
+        addNote({ type: 'note', text: `That is the example sentence. Write your own sentence with “${display}”.` })
+        return
+      }
       const busy = (err?.message || '').toLowerCase().includes('too many')
       dispatch({ type: 'check-error', message: '' })
       setNotes(list => list.map(n => (n.id === pendingId ? { ...n, pending: false } : n)))

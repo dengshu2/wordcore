@@ -50,6 +50,8 @@ func (h *handler) handleUpsertRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.rejectCopiedExamples(word, rec.SentenceAttempts)
+
 	out, err := upsertRecord(h.db, claims.UserID, word, rec)
 	if err != nil {
 		log.Printf("upsert record error (user=%s, word=%s): %v", claims.UserID, word, err)
@@ -58,6 +60,16 @@ func (h *handler) handleUpsertRecord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, out)
+}
+
+// rejectCopiedExamples clears the pass on any attempt that repeats one of the
+// word's example sentences, so a copied example never counts whatever the client says.
+func (h *handler) rejectCopiedExamples(word string, attempts []WordAttempt) {
+	for i, a := range attempts {
+		if a.IsAcceptable && h.copiesExample(word, a.Sentence) {
+			attempts[i].IsAcceptable = false
+		}
+	}
 }
 
 // handleExportCSV handles GET /api/records/export

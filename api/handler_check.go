@@ -5,7 +5,40 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"unicode"
 )
+
+// errCopiedExample is the error code the frontend matches to explain why a
+// sentence was turned away without an AI check.
+const errCopiedExample = "copied_example"
+
+// exampleKey normalizes a sentence for comparing it with the card's examples:
+// case, surrounding spaces, runs of spaces and trailing punctuation are ignored.
+func exampleKey(sentence string) string {
+	s := strings.TrimRightFunc(strings.TrimSpace(sentence), func(r rune) bool {
+		return unicode.IsPunct(r) || unicode.IsSpace(r)
+	})
+	return strings.ToLower(strings.Join(strings.Fields(s), " "))
+}
+
+// copiesExample reports whether sentence is one of the word's example
+// sentences (or the reference sentence the learner was shown).
+func (h *handler) copiesExample(word, sentence string, extra ...string) bool {
+	key := exampleKey(sentence)
+	if key == "" {
+		return false
+	}
+	var examples []string
+	if h.content != nil {
+		examples = h.content.Examples(word)
+	}
+	for _, ex := range append(examples, extra...) {
+		if exampleKey(ex) == key {
+			return true
+		}
+	}
+	return false
+}
 
 // handleCheckSentence handles POST /api/check-sentence
 // Proxies the request to OpenRouter and returns structured AI feedback.
@@ -34,6 +67,14 @@ func (h *handler) handleCheckSentence(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(req.UserSentence) > 1000 {
 		respondError(w, http.StatusBadRequest, "sentence is too long (max 1000 characters)")
+		return
+	}
+
+	if h.copiesExample(req.Word, req.UserSentence, req.ReferenceSentence) {
+		respondJSON(w, http.StatusUnprocessableEntity, map[string]string{
+			"error": "this is the example sentence; write your own",
+			"code":  errCopiedExample,
+		})
 		return
 	}
 

@@ -161,6 +161,25 @@ func (s *ContentStore) Card(key string) (json.RawMessage, bool) {
 	return c, ok
 }
 
+// Examples returns every example sentence on the word's card.
+func (s *ContentStore) Examples(key string) []string {
+	raw, ok := s.Card(key)
+	if !ok {
+		return nil
+	}
+	var c cardSummary
+	if json.Unmarshal(raw, &c) != nil {
+		return nil
+	}
+	var out []string
+	for _, sense := range c.Senses {
+		for _, ex := range sense.Examples {
+			out = append(out, ex.Text)
+		}
+	}
+	return out
+}
+
 func contains(list []string, v string) bool {
 	for _, x := range list {
 		if x == v {

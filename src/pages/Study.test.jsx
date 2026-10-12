@@ -121,6 +121,16 @@ describe('Study', () => {
     expect(screen.getByText('You already used this sentence. Write a new one to make progress.')).toBeInTheDocument()
   })
 
+  it('explains when the sentence is turned away for copying the example', async () => {
+    checkSentence.mockRejectedValue(Object.assign(new Error('this is the example sentence; write your own'), { status: 422, code: 'copied_example' }))
+    renderStudy()
+    type('I dropped my keys on the way home.')
+    fireEvent.click(screen.getByRole('button', { name: 'Check my sentence' }))
+    expect(await screen.findByText('That is the example sentence. Write your own sentence with “drop”.')).toBeInTheDocument()
+    expect(progress.saveFeedback).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Your sentence')).toHaveValue('')
+  })
+
   it('offers mastery once three sentences are accepted', async () => {
     mockRecords = { drop: { status: 'learning', acceptedAttempts: 3, feedback: { isAcceptable: true }, sentenceAttempts: [] } }
     renderStudy()
