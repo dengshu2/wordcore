@@ -176,7 +176,6 @@ mark { background: none; color: var(--green); font-weight: 650; }
 .btn.primary:disabled { opacity: 0.45; }
 .btn.quiet { background: none; box-shadow: none; color: var(--sub); font-weight: 500; padding: 0 6px; }
 .btn.wide { width: 100%; height: 46px; }
-.btn.more { justify-self: center; }
 
 @media (prefers-reduced-motion: no-preference) {
   .msg, .actions .btn { animation: rise 0.22s ease-out; }

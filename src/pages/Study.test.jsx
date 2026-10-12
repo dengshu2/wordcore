@@ -131,6 +131,16 @@ describe('Study', () => {
     expect(screen.getByLabelText('Your sentence')).toHaveValue('')
   })
 
+  it('marks a saved copy of the example as not counting', () => {
+    mockRecords = {
+      drop: { status: 'learning', acceptedAttempts: 0, sentenceAttempts: [{ sentence: 'Please do not drop the glass bowl', normalizedSentence: 'please do not drop the glass bowl', isAcceptable: false, createdAt: '2026-09-01T10:00:00Z' }] },
+    }
+    renderStudy()
+    expect(screen.getByText('Same as the example')).toBeInTheDocument()
+    expect(screen.getByText('It does not count. Write your own sentence with “drop”.')).toBeInTheDocument()
+    expect(screen.queryByText('Almost there')).not.toBeInTheDocument()
+  })
+
   it('offers mastery once three sentences are accepted', async () => {
     mockRecords = { drop: { status: 'learning', acceptedAttempts: 3, feedback: { isAcceptable: true }, sentenceAttempts: [] } }
     renderStudy()

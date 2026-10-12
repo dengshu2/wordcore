@@ -5,7 +5,7 @@ import { rememberWord, useCard, useContent } from '../context/ContentContext'
 import { normalizeSentenceKey } from '../hooks/useProgress'
 import { checkSentence } from '../services/sentenceCheck'
 import { stop as stopAudio } from '../services/audio'
-import { includesWord } from '../lib/wordForms'
+import { copiesExample, includesWord } from '../lib/wordForms'
 import { getEarliestReviewDate, getNextWord } from './studySession'
 import useStudySession, { REQUIRED_ACCEPTED_ATTEMPTS } from './useStudySession'
 import { StudyTopBar } from '../components/TopBar'
@@ -103,6 +103,7 @@ function WordStudy({ entry, session, progress }) {
         {
           id: `a-${a.normalizedSentence}-r`, type: 'result', ok: a.isAcceptable, at: a.createdAt,
           note: a.feedbackGrammar || a.feedbackNaturalness, revision: a.isAcceptable ? '' : a.feedbackRevision,
+          copied: !a.isAcceptable && copiesExample(a.sentence, card),
         },
       ])
     const all = [...saved, ...notes].sort((a, b) => new Date(a.at) - new Date(b.at))
@@ -110,7 +111,7 @@ function WordStudy({ entry, session, progress }) {
     if (last && last.ok) last.tally = accepted
     if (state.isChecking) all.push({ id: 'typing', type: 'typing' })
     return all
-  }, [record.sentenceAttempts, notes, accepted, state.isChecking])
+  }, [record.sentenceAttempts, notes, accepted, state.isChecking, card])
 
   useEffect(() => {
     if (!scrollNext.current) return

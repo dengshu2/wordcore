@@ -7,7 +7,6 @@ import { buildWordCsv } from './wordExport'
 import { REQUIRED_ACCEPTED_ATTEMPTS } from './useStudySession'
 
 const FILTERS = ['All', 'Learning', 'Needs work', 'Mastered']
-const PAGE = 60
 
 function isWeak(record = {}) {
   return record.status === 'learning' && record.attempts > 0 && !record.feedback?.isAcceptable
@@ -28,7 +27,6 @@ export default function Words() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
-  const [shown, setShown] = useState(PAGE)
 
   useEffect(() => { document.title = 'Words — WordCore' }, [])
 
@@ -62,11 +60,11 @@ export default function Words() {
             placeholder="Search words"
             aria-label="Search words"
             value={query}
-            onChange={e => { setQuery(e.target.value); setShown(PAGE) }}
+            onChange={e => setQuery(e.target.value)}
           />
           <div className="seg" role="group" aria-label="Filter">
             {FILTERS.map(f => (
-              <button key={f} type="button" aria-pressed={filter === f} onClick={() => { setFilter(f); setShown(PAGE) }}>{f}</button>
+              <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}>{f}</button>
             ))}
           </div>
         </div>
@@ -74,7 +72,7 @@ export default function Words() {
           <p className="empty">No words match.</p>
         ) : (
           <div className="rows">
-            {list.slice(0, shown).map(w => {
+            {list.map(w => {
               const r = records[w.word] || {}
               const n = Math.min(r.acceptedAttempts || 0, REQUIRED_ACCEPTED_ATTEMPTS)
               let label = w.level || ''
@@ -92,9 +90,6 @@ export default function Words() {
               )
             })}
           </div>
-        )}
-        {shown < list.length && (
-          <button type="button" className="btn more" onClick={() => setShown(s => s + PAGE)}>Show more</button>
         )}
       </main>
     </div>

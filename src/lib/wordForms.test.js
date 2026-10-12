@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { includesWord, splitByWord } from './wordForms'
+import { copiesExample, includesWord, splitByWord } from './wordForms'
 
 describe('wordForms', () => {
   it('accepts regular and irregular inflections', () => {
@@ -22,5 +22,12 @@ describe('wordForms', () => {
     expect(splitByWord('Take it while you take notes.', 'take')).toEqual([
       { text: 'Take', hit: true }, { text: ' it while you ', hit: false }, { text: 'take', hit: true }, { text: ' notes.', hit: false },
     ])
+  })
+
+  it('spots a copied example, ignoring case, spaces and trailing punctuation', () => {
+    const card = { senses: [{ examples: [{ text: 'I dropped my keys on the way home.' }] }] }
+    expect(copiesExample('  i dropped my keys   on the way home!! ', card)).toBe(true)
+    expect(copiesExample('I dropped my keys on the way home today.', card)).toBe(false)
+    expect(copiesExample('', card)).toBe(false)
   })
 })

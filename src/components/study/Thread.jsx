@@ -20,6 +20,14 @@ export default function Thread({ items, word, forms, required }) {
           case 'note':
             return <div key={item.id} className="msg bot"><p>{item.text}</p></div>
           default:
+            if (item.copied) {
+              return (
+                <div key={item.id} className="msg bot">
+                  <p className="verdict warn">Same as the example</p>
+                  <p>It does not count. Write your own sentence with “{word}”.</p>
+                </div>
+              )
+            }
             return (
               <div key={item.id} className="msg bot">
                 <p className={`verdict ${item.ok ? 'ok' : 'warn'}`}>{item.ok ? <><CheckIcon />Natural and correct</> : 'Almost there'}</p>

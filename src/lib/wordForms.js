@@ -57,3 +57,15 @@ export function splitByWord(text, word, forms) {
   if (last < text.length) parts.push({ text: text.slice(last), hit: false })
   return parts
 }
+
+// Same rule as the backend's exampleKey: case, surrounding spaces, runs of
+// spaces and trailing punctuation are ignored.
+function exampleKey(sentence = '') {
+  return String(sentence).trim().replace(/[\p{P}\s]+$/u, '').replace(/\s+/g, ' ').toLowerCase()
+}
+
+/** True when the sentence just repeats one of the card's example sentences. */
+export function copiesExample(sentence, card) {
+  const key = exampleKey(sentence)
+  return Boolean(key) && (card?.senses || []).some(s => (s.examples || []).some(ex => exampleKey(ex.text) === key))
+}
