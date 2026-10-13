@@ -41,6 +41,11 @@ async function request(path, options = {}) {
         throw new Error('Session expired. Please log in again.')
     }
 
+    // Once the token is past its half-life the server sends a replacement,
+    // so a session in regular use never runs out.
+    const renewed = res.headers.get('X-Renewed-Token')
+    if (renewed) setToken(renewed)
+
     const data = await res.json().catch(() => ({}))
 
     if (!res.ok) {

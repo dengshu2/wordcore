@@ -15,8 +15,14 @@ import (
 
 const (
 	bcryptCost     = 12
-	tokenDuration  = 7 * 24 * time.Hour
+	tokenDuration  = 30 * 24 * time.Hour
 	contextKeyUser = contextKey("user")
+	// A token with less than this left is replaced on its next use, so a
+	// session in regular use never runs out.
+	renewWithin = tokenDuration / 2
+	// renewHeader carries the replacement token; the client stores it in
+	// place of the old one.
+	renewHeader = "X-Renewed-Token"
 )
 
 // Sentinel errors for user-facing auth failures.

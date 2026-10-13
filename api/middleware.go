@@ -22,6 +22,7 @@ func corsMiddleware(allowedOrigins map[string]bool) func(http.Handler) http.Hand
 			}
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Expose-Headers", renewHeader)
 
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
@@ -46,6 +47,11 @@ func jwtMiddleware(auth *AuthService) func(http.Handler) http.Handler {
 			if err != nil {
 				respondError(w, http.StatusUnauthorized, "invalid or expired token")
 				return
+			}
+			if claims.ExpiresAt != nil && time.Until(claims.ExpiresAt.Time) < renewWithin {
+				if fresh, err := auth.signToken(User{ID: claims.UserID, Email: claims.Email}); err == nil {
+					w.Header().Set(renewHeader, fresh)
+				}
 			}
 			ctx := context.WithValue(r.Context(), contextKeyUser, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -221,5 +222,38 @@ func TestClientIP(t *testing.T) {
 	r.Header.Set("X-Forwarded-For", "203.0.113.9")
 	if got := clientIP(r); got != "203.0.113.9" {
 		t.Errorf("clientIP with single XFF = %q, want 203.0.113.9", got)
+	}
+}
+
+func TestJWTMiddlewareRenewsAgingTokens(t *testing.T) {
+	auth := NewAuthService(nil, "test-secret")
+	h := jwtMiddleware(auth)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	sign := func(exp time.Time) string {
+		tok, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{UserID: "user-123", Email: "a@b.com", RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+		}}).SignedString([]byte("test-secret"))
+		return tok
+	}
+	serve := func(token string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest("GET", "/api/records", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		return rec
+	}
+
+	if rec := serve(sign(time.Now().Add(-time.Minute))); rec.Code != http.StatusUnauthorized || rec.Header().Get(renewHeader) != "" {
+		t.Error("an expired token was accepted or renewed")
+	}
+	if got := serve(sign(time.Now().Add(tokenDuration - time.Hour))).Header().Get(renewHeader); got != "" {
+		t.Error("a fresh token was renewed")
+	}
+	fresh := serve(sign(time.Now().Add(renewWithin - time.Hour))).Header().Get(renewHeader)
+	claims, err := auth.ValidateToken(fresh)
+	if err != nil {
+		t.Fatalf("renewed token: %v", err)
+	}
+	if claims.UserID != "user-123" || claims.Email != "a@b.com" || time.Until(claims.ExpiresAt.Time) < tokenDuration-time.Minute {
+		t.Errorf("renewed claims = %+v", claims)
 	}
 }
